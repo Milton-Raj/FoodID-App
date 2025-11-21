@@ -10,46 +10,9 @@ export const LoginScreen = ({ navigation }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSendOTP = async () => {
-        if (!phoneNumber || phoneNumber.length < 10) {
-            Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number');
-            return;
-        }
-
-        setLoading(true);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-        try {
-            const response = await fetch(`${API_URL}/auth/send-otp`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone_number: phoneNumber }),
-                signal: controller.signal
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // Navigate to OTP screen
-                navigation.navigate('OTP', {
-                    phoneNumber,
-                    otpCode: data.otp_code // For testing only
-                });
-            } else {
-                Alert.alert('Error', data.detail || 'Failed to send OTP');
-            }
-        } catch (error) {
-            console.error(error);
-            if (error.name === 'AbortError') {
-                Alert.alert('Connection Error', 'Request timed out. Please check your network connection and ensure the server IP is correct.');
-            } else {
-                Alert.alert('Connection Error', 'Failed to connect to server. Please check your network connection.');
-            }
-        } finally {
-            clearTimeout(timeoutId);
-            setLoading(false);
-        }
+    const handleSendOTP = () => {
+        // Directly navigate to SendOTP screen for dummy flow
+        navigation.navigate('SendOTP', { phoneNumber });
     };
 
     return (
