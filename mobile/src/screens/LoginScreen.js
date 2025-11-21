@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
-import { API_URL, mockSendOTP } from '../config';
+import { api } from '../services/api';
 
 export const LoginScreen = ({ navigation }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -18,17 +18,19 @@ export const LoginScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            // Use mockSendOTP for dummy flow
-            const { otp } = await mockSendOTP(phoneNumber);
+            // Use real API to send OTP
+            const data = await api.sendOTP(phoneNumber);
+
+            console.log('OTP sent:', data.otp_code); // For testing
 
             // Navigate to OTP screen with fetched OTP
             navigation.navigate('OTP', {
                 phoneNumber,
-                otpCode: otp
+                otpCode: data.otp_code // Backend returns OTP for testing
             });
         } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Failed to send OTP');
+            console.error('Send OTP Error:', error);
+            Alert.alert('Error', error.message || 'Failed to send OTP');
         } finally {
             setLoading(false);
         }

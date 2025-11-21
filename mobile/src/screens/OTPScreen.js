@@ -5,7 +5,7 @@ import { Button } from '../components/Button';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL, mockVerifyOTP } from '../config';
+import { api } from '../services/api';
 
 export const OTPScreen = ({ route, navigation }) => {
     const { phoneNumber, otpCode } = route.params;
@@ -50,13 +50,15 @@ export const OTPScreen = ({ route, navigation }) => {
     const verifyOTP = async (otpString) => {
         setLoading(true);
         try {
-            // Use mock verification for dummy flow
-            const data = await mockVerifyOTP(phoneNumber, otpString || otp.join(''));
+            // Use real API to verify OTP and create user in database
+            const data = await api.verifyOTP(phoneNumber, otpString || otp.join(''));
 
             if (data.success) {
-                // Save user data
+                // Save user data (user will have database ID)
                 await AsyncStorage.setItem('user', JSON.stringify(data.user));
                 await AsyncStorage.setItem('isLoggedIn', 'true');
+
+                console.log('User logged in:', data.user);
 
                 // Navigate to main app
                 navigation.reset({
@@ -69,8 +71,10 @@ export const OTPScreen = ({ route, navigation }) => {
                 inputRefs.current[0]?.focus();
             }
         } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Failed to verify OTP');
+            console.error('OTP Verification Error:', error);
+            Alert.alert('Error', error.message || 'Failed to verify OTP');
+            setOtp(['', '', '', '', '', '']);
+            inputRefs.current[0]?.focus();
         } finally {
             setLoading(false);
         }

@@ -1,11 +1,63 @@
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL, mockAnalyzeFood, mockGetRecentScans } from '../config';
 
 // Use localhost for iOS simulator, 10.0.2.2 for Android emulator
 // For physical device, use your computer's IP address
 const DEV_API_URL = API_URL;
 
+// Helper function to get current user ID
+const getCurrentUserId = async () => {
+    try {
+        const userStr = await AsyncStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            return user.id;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        return null;
+    }
+};
+
 export const api = {
+    // Authentication APIs
+    sendOTP: async (phoneNumber) => {
+        try {
+            const response = await fetch(`${DEV_API_URL}/api/auth/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone_number: phoneNumber }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to send OTP');
+            }
+            return data;
+        } catch (error) {
+            console.error('Send OTP Error:', error);
+            throw error;
+        }
+    },
+
+    verifyOTP: async (phoneNumber, otpCode) => {
+        try {
+            const response = await fetch(`${DEV_API_URL}/api/auth/verify-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone_number: phoneNumber, otp_code: otpCode }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to verify OTP');
+            }
+            return data;
+        } catch (error) {
+            console.error('Verify OTP Error:', error);
+            throw error;
+        }
+    },
     analyzeFood: async (photoUri) => {
         try {
             // Use mock data for demo
