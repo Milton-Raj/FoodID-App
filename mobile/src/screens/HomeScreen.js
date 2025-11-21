@@ -141,10 +141,16 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
     header: {
-        padding: 24,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: 24,
     },
-    greeting: {
+    title: {
         ...typography.h2,
+        marginBottom: 4,
     },
     subtitle: {
         ...typography.body,
