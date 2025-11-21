@@ -1,35 +1,42 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
-
-const mockNotifications = [
-    {
-        id: 1,
-        title: 'Welcome to FoodID! 🎉',
-        message: 'Start scanning your meals to track nutrition',
-        time: '2 hours ago',
-        read: false
-    },
-    {
-        id: 2,
-        title: 'Daily Goal Achieved! 🏆',
-        message: 'You\'ve scanned 5 meals today',
-        time: '1 day ago',
-        read: true
-    },
-    {
-        id: 3,
-        title: 'New Feature Available',
-        message: 'Check out food history for interesting facts',
-        time: '2 days ago',
-        read: true
-    }
-];
+import { api } from '../services/api';
 
 export const NotificationsScreen = ({ navigation }) => {
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            setLoading(true);
+            const data = await api.getNotifications(1);
+            setNotifications(data);
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    const handleRefresh = () => {
+        setRefreshing(true);
+        fetchNotifications();
+    };
+
+    const handleNotificationPress = (notification) => {
+        navigation.navigate('NotificationDetail', { notificationId: notification.id });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -40,30 +47,42 @@ export const NotificationsScreen = ({ navigation }) => {
                 <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView style={styles.content}>
-                {mockNotifications.map((notification) => (
-                    <TouchableOpacity
-                        key={notification.id}
-                        style={[
-                            styles.notificationCard,
-                            !notification.read && styles.unreadCard
-                        ]}
-                    >
-                        <View style={styles.notificationContent}>
-                            <Text style={styles.notificationTitle}>
-                                {notification.title}
-                            </Text>
-                            <Text style={styles.notificationMessage}>
-                                {notification.message}
-                            </Text>
-                            <Text style={styles.notificationTime}>
-                                {notification.time}
-                            </Text>
-                        </View>
-                        {!notification.read && <View style={styles.unreadDot} />}
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            ) : (
+                <ScrollView
+                    style={styles.content}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                    }
+                >
+                    {notifications.map((notification) => (
+                        <TouchableOpacity
+                            key={notification.id}
+                            style={[
+                                styles.notificationCard,
+                                !notification.read && styles.unreadCard
+                            ]}
+                            onPress={() => handleNotificationPress(notification)}
+                        >
+                            <View style={styles.notificationContent}>
+                                <Text style={styles.notificationTitle}>
+                                    {notification.title}
+                                </Text>
+                                <Text style={styles.notificationMessage} numberOfLines={2}>
+                                    {notification.message}
+                                </Text>
+                                <Text style={styles.notificationTime}>
+                                    {new Date(notification.created_at).toLocaleString()}
+                                </Text>
+                            </View>
+                            {!notification.read && <View style={styles.unreadDot} />}
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            )}
         </SafeAreaView>
     );
 };
@@ -90,6 +109,11 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         padding: 16,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     notificationCard: {
         backgroundColor: colors.surface,

@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, ChevronRight } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { API_URL } from '../config';
+import { api } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const HistoryScreen = ({ navigation }) => {
@@ -20,8 +21,7 @@ export const HistoryScreen = ({ navigation }) => {
             const userStr = await AsyncStorage.getItem('user');
             const user = userStr ? JSON.parse(userStr) : { id: 1 }; // Default to mock user 1
 
-            const response = await fetch(`${API_URL}/scan/recent?user_id=${user.id}&limit=20`);
-            const data = await response.json();
+            const data = await api.getRecentScans(user.id);
             setHistory(data);
         } catch (error) {
             console.error('Error fetching history:', error);

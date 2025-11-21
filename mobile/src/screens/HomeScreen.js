@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Image } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Camera, Upload } from 'lucide-react-native';
+import { Camera, Upload, User, Users } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/Button';
 import { NotificationButton } from '../components/NotificationButton';
+import { CoinBadge } from '../components/CoinBadge';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';
@@ -14,9 +15,11 @@ import { API_URL } from '../config';
 export const HomeScreen = ({ navigation }) => {
     const [recentScans, setRecentScans] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [coins, setCoins] = useState(0);
 
     useEffect(() => {
         fetchRecentScans();
+        fetchCoinBalance();
     }, []);
 
     const fetchRecentScans = async () => {
@@ -28,6 +31,15 @@ export const HomeScreen = ({ navigation }) => {
             console.error('Failed to fetch recent scans:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchCoinBalance = async () => {
+        try {
+            const data = await api.getCoinBalance(1);
+            setCoins(data.balance);
+        } catch (error) {
+            console.error('Failed to fetch coin balance:', error);
         }
     };
 
@@ -64,16 +76,22 @@ export const HomeScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.content}>
-                {/* Header with Notification Button */}
+                {/* Header with Profile, Coins, and Notifications */}
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.title}>FoodID 🍽️</Text>
                         <Text style={styles.subtitle}>Scan your food, know what you eat</Text>
                     </View>
-                    <NotificationButton
-                        onPress={() => navigation.navigate('Notifications')}
-                        unreadCount={1}
-                    />
+                    <View style={styles.headerActions}>
+                        <CoinBadge coins={coins} onPress={() => navigation.navigate('CoinHistory')} />
+                        <NotificationButton
+                            onPress={() => navigation.navigate('Notifications')}
+                            unreadCount={1}
+                        />
+                        <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.profileButton}>
+                            <User size={24} color={colors.primary} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <View style={styles.actionContainer}>
@@ -144,6 +162,23 @@ export const HomeScreen = ({ navigation }) => {
                         </View>
                     )}
                 </View>
+
+                {/* Referral Card */}
+                <View style={styles.referralCard}>
+                    <View style={styles.referralContent}>
+                        <Text style={styles.referralEmoji}>👥</Text>
+                        <View style={styles.referralText}>
+                            <Text style={styles.referralTitle}>Invite Friends</Text>
+                            <Text style={styles.referralSubtitle}>Share FoodID and earn rewards!</Text>
+                        </View>
+                    </View>
+                    <Button
+                        title="Refer Now"
+                        onPress={() => navigation.navigate('Referral')}
+                        variant="secondary"
+                        style={styles.referralButton}
+                    />
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -157,10 +192,25 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         paddingHorizontal: 24,
         paddingTop: 16,
         paddingBottom: 24,
+    },
+    headerActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    profileButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
     },
     title: {
         ...typography.h2,
@@ -284,5 +334,43 @@ const styles = StyleSheet.create({
         color: colors.white,
         fontWeight: 'bold',
         fontSize: 12,
+    },
+    referralCard: {
+        marginHorizontal: 24,
+        marginTop: 16,
+        marginBottom: 24,
+        padding: 20,
+        backgroundColor: colors.primary,
+        borderRadius: 16,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+    },
+    referralContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    referralEmoji: {
+        fontSize: 48,
+        marginRight: 16,
+    },
+    referralText: {
+        flex: 1,
+    },
+    referralTitle: {
+        ...typography.h3,
+        color: colors.white,
+        marginBottom: 4,
+    },
+    referralSubtitle: {
+        ...typography.body,
+        color: colors.white,
+        opacity: 0.9,
+    },
+    referralButton: {
+        backgroundColor: colors.white,
     },
 });

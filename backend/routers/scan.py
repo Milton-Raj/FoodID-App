@@ -43,7 +43,7 @@ def compress_image(file_content: bytes, max_size_kb: int = 500) -> bytes:
         return file_content
 
 @router.post("/analyze")
-async def analyze_food(file: UploadFile = File(...)):
+async def analyze_food(file: UploadFile = File(...), user_id: int = 1):
     # Read and compress image
     file_content = await file.read()
     compressed_content = compress_image(file_content)
@@ -76,14 +76,27 @@ async def analyze_food(file: UploadFile = File(...)):
         "ingredients": nutrition_data['ingredients']
     }
     
-    # Save to Supabase (Mock user ID 1 for now)
+    # Save to Supabase
     create_scan(
-        user_id=1,
+        user_id=user_id,
         food_name=result["name"],
         confidence=result["confidence"],
         image_path=file_location,
         nutrition_json=json.dumps(result)
     )
+    
+    # Award coins for the scan
+    from routers.coins import award_coins
+    coin_result = award_coins(
+        user_id=user_id,
+        amount=1,
+        transaction_type="scan",
+        description=f"Scanned {food_name}"
+    )
+    
+    # Add coin information to result
+    result["coins_earned"] = 1
+    result["total_coins"] = coin_result["new_balance"]
     
     return result
 

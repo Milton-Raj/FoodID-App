@@ -8,7 +8,11 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { CameraScreen } from '../screens/CameraScreen';
 import { ResultsScreen } from '../screens/ResultsScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { NotificationDetailScreen } from '../screens/NotificationDetailScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
+import { ReferralScreen } from '../screens/ReferralScreen';
+import { CoinHistoryScreen } from '../screens/CoinHistoryScreen';
 
 const Stack = createStackNavigator();
 
@@ -28,7 +32,11 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Camera" component={CameraScreen} />
                 <Stack.Screen name="Results" component={ResultsScreen} />
                 <Stack.Screen name="Notifications" component={NotificationsScreen} />
+                <Stack.Screen name="NotificationDetail" component={NotificationDetailScreen} />
                 <Stack.Screen name="History" component={HistoryScreen} />
+                <Stack.Screen name="Profile" component={ProfileScreen} />
+                <Stack.Screen name="Referral" component={ReferralScreen} />
+                <Stack.Screen name="CoinHistory" component={CoinHistoryScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
