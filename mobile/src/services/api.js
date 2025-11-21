@@ -1,8 +1,9 @@
 import { Platform } from 'react-native';
+import { API_URL } from '../config';
 
 // Use localhost for iOS simulator, 10.0.2.2 for Android emulator
 // For physical device, use your computer's IP address
-const DEV_API_URL = 'http://192.168.225.120:8000';
+const DEV_API_URL = API_URL;
 
 export const api = {
     analyzeFood: async (photoUri) => {

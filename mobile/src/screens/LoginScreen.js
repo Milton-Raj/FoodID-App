@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
+import { API_URL } from '../config';
 
 export const LoginScreen = ({ navigation }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -17,7 +18,7 @@ export const LoginScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            const response = await fetch('http://192.168.225.120:8000/auth/send-otp', {
+            const response = await fetch(`${API_URL}/auth/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone_number: phoneNumber })
