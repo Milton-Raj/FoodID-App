@@ -68,102 +68,108 @@ export const OTPScreen = ({ route, navigation }) => {
                 setOtp(['', '', '', '', '', '']);
                 inputRefs.current[0]?.focus();
             }
-        };
-
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>Enter OTP 🔐</Text>
-                        <Text style={styles.subtitle}>
-                            Code sent to {phoneNumber}
-                        </Text>
-                    </View>
-
-                    <View style={styles.otpContainer}>
-                        {otp.map((digit, index) => (
-                            <TextInput
-                                key={index}
-                                ref={ref => inputRefs.current[index] = ref}
-                                style={[styles.otpInput, digit && styles.otpInputFilled]}
-                                value={digit}
-                                onChangeText={(value) => handleOTPChange(value, index)}
-                                onKeyPress={(e) => handleKeyPress(e, index)}
-                                keyboardType="number-pad"
-                                maxLength={1}
-                                selectTextOnFocus
-                            />
-                        ))}
-                    </View>
-
-                    <Button
-                        title={loading ? "Verifying..." : "Verify OTP"}
-                        onPress={() => verifyOTP()}
-                        disabled={loading || otp.some(d => !d)}
-                        style={styles.button}
-                    />
-
-                    <Text style={styles.resendText}>
-                        Didn't receive code? <Text style={styles.resendLink}>Resend</Text>
-                    </Text>
-                </View>
-            </SafeAreaView>
-        );
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'Failed to verify OTP');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: colors.background,
-        },
-        content: {
-            flex: 1,
-            padding: 24,
-            justifyContent: 'center',
-        },
-        header: {
-            marginBottom: 48,
-        },
-        title: {
-            ...typography.h1,
-            marginBottom: 12,
-            textAlign: 'center',
-        },
-        subtitle: {
-            ...typography.body,
-            color: colors.textSecondary,
-            textAlign: 'center',
-        },
-        otpContainer: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginBottom: 32,
-        },
-        otpInput: {
-            width: 50,
-            height: 60,
-            borderRadius: 12,
-            borderWidth: 2,
-            borderColor: colors.border,
-            textAlign: 'center',
-            fontSize: 24,
-            fontWeight: 'bold',
-            backgroundColor: colors.surface,
-        },
-        otpInputFilled: {
-            borderColor: colors.primary,
-        },
-        button: {
-            marginTop: 16,
-        },
-        resendText: {
-            ...typography.body,
-            textAlign: 'center',
-            marginTop: 24,
-            color: colors.textSecondary,
-        },
-        resendLink: {
-            color: colors.primary,
-            fontWeight: 'bold',
-        },
-    });
+    return (
+        <SafeAreaView style={styles.container}>
+            <View style={styles.content}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>Enter OTP 🔐</Text>
+                    <Text style={styles.subtitle}>
+                        Code sent to {phoneNumber}
+                    </Text>
+                </View>
+
+                <View style={styles.otpContainer}>
+                    {otp.map((digit, index) => (
+                        <TextInput
+                            key={index}
+                            ref={ref => inputRefs.current[index] = ref}
+                            style={[styles.otpInput, digit && styles.otpInputFilled]}
+                            value={digit}
+                            onChangeText={(value) => handleOTPChange(value, index)}
+                            onKeyPress={(e) => handleKeyPress(e, index)}
+                            keyboardType="number-pad"
+                            maxLength={1}
+                            selectTextOnFocus
+                        />
+                    ))}
+                </View>
+
+                <Button
+                    title={loading ? "Verifying..." : "Verify OTP"}
+                    onPress={() => verifyOTP()}
+                    disabled={loading || otp.some(d => !d)}
+                    style={styles.button}
+                />
+
+                <Text style={styles.resendText}>
+                    Didn't receive code? <Text style={styles.resendLink}>Resend</Text>
+                </Text>
+            </View>
+        </SafeAreaView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+    content: {
+        flex: 1,
+        padding: 24,
+        justifyContent: 'center',
+    },
+    header: {
+        marginBottom: 48,
+    },
+    title: {
+        ...typography.h1,
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    subtitle: {
+        ...typography.body,
+        color: colors.textSecondary,
+        textAlign: 'center',
+    },
+    otpContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 32,
+    },
+    otpInput: {
+        width: 50,
+        height: 60,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: colors.border,
+        textAlign: 'center',
+        fontSize: 24,
+        fontWeight: 'bold',
+        backgroundColor: colors.surface,
+    },
+    otpInputFilled: {
+        borderColor: colors.primary,
+    },
+    button: {
+        marginTop: 16,
+    },
+    resendText: {
+        ...typography.body,
+        textAlign: 'center',
+        marginTop: 24,
+        color: colors.textSecondary,
+    },
+    resendLink: {
+        color: colors.primary,
+        fontWeight: 'bold',
+    },
+});
