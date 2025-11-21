@@ -13,15 +13,24 @@ export const CoinHistoryScreen = ({ navigation }) => {
 
     useEffect(() => {
         fetchCoinData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchCoinData = async () => {
         try {
             setLoading(true);
-            const [historyData, balanceData] = await Promise.all([
+
+            // Add timeout to prevent hanging
+            const timeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Request timeout')), 5000)
+            );
+
+            const dataPromise = Promise.all([
                 api.getCoinHistory(1),
                 api.getCoinBalance(1),
             ]);
+
+            const [historyData, balanceData] = await Promise.race([dataPromise, timeout]);
             setTransactions(historyData || []);
             setBalance(balanceData?.balance || 0);
         } catch (error) {
@@ -77,7 +86,7 @@ export const CoinHistoryScreen = ({ navigation }) => {
                 <Text style={[styles.amountText, item.amount > 0 ? styles.amountPositive : styles.amountNegative]}>
                     {item.amount > 0 ? '+' : ''}{item.amount}
                 </Text>
-                <Text style={styles.coinEmoji}>🪙</Text>
+                <Text style={styles.coinSymbol}>●</Text>
             </View>
         </View>
     );
@@ -113,7 +122,7 @@ export const CoinHistoryScreen = ({ navigation }) => {
                 <Text style={styles.balanceLabel}>Total Balance</Text>
                 <View style={styles.balanceDisplay}>
                     <Text style={styles.balanceAmount}>{balance}</Text>
-                    <Text style={styles.balanceEmoji}>🪙</Text>
+                    <Text style={styles.coinSymbolLarge}>●</Text>
                 </View>
             </View>
 
@@ -272,7 +281,18 @@ const styles = StyleSheet.create({
     amountNegative: {
         color: colors.error,
     },
-    coinEmoji: {
-        fontSize: 20,
+    coinSymbol: {
+        fontSize: 16,
+        color: colors.secondary, // Gold color
+        marginLeft: 4,
+    },
+    balanceEmoji: {
+        fontSize: 32,
+        marginLeft: 8,
+    },
+    coinSymbolLarge: {
+        fontSize: 32,
+        color: colors.secondary, // Gold color
+        marginLeft: 8,
     },
 });

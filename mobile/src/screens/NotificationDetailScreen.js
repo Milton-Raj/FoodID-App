@@ -13,12 +13,21 @@ export const NotificationDetailScreen = ({ route, navigation }) => {
 
     useEffect(() => {
         fetchNotificationDetail();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchNotificationDetail = async () => {
         try {
             setLoading(true);
-            const data = await api.getNotificationDetail(notificationId);
+
+            // Add timeout to prevent hanging
+            const timeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Request timeout')), 5000)
+            );
+
+            const dataPromise = api.getNotificationDetail(notificationId);
+            const data = await Promise.race([dataPromise, timeout]);
+
             setNotification(data);
 
             // Mark as read

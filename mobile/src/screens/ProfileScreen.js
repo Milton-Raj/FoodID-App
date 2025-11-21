@@ -32,12 +32,21 @@ export const ProfileScreen = ({ navigation }) => {
 
     useEffect(() => {
         fetchProfile();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchProfile = async () => {
         try {
             setLoading(true);
-            const data = await api.getProfile(1);
+
+            // Add timeout to prevent hanging
+            const timeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Request timeout')), 5000)
+            );
+
+            const dataPromise = api.getProfile(1);
+            const data = await Promise.race([dataPromise, timeout]);
+
             setProfile(data);
         } catch (error) {
             console.error('Failed to fetch profile:', error);
