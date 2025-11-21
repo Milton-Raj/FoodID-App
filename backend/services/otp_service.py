@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 from services.supabase_client import get_supabase_client
 
+# In-memory storage for testing (when Supabase tables don't exist)
+_otp_storage = {}
+_user_storage = {}
+
 def generate_otp(length: int = 6) -> str:
     """Generate a random OTP code"""
     return ''.join(random.choices(string.digits, k=length))
@@ -20,15 +24,24 @@ def create_otp(phone_number: str) -> Dict[str, Any]:
         otp_code = generate_otp()
         expires_at = datetime.utcnow() + timedelta(minutes=5)
         
-        # Store in database
-        data = {
-            'phone_number': phone_number,
-            'otp_code': otp_code,
-            'expires_at': expires_at.isoformat(),
-            'verified': False
-        }
-        
-        result = supabase.table('otp_verifications').insert(data).execute()
+        # Try to store in database
+        try:
+            data = {
+                'phone_number': phone_number,
+                'otp_code': otp_code,
+                'expires_at': expires_at.isoformat(),
+                'verified': False
+            }
+            
+            result = supabase.table('otp_verifications').insert(data).execute()
+        except Exception as db_error:
+            # Fallback to in-memory storage if table doesn't exist
+            print(f"⚠️  Supabase table not found, using in-memory storage")
+            _otp_storage[phone_number] = {
+                'otp_code': otp_code,
+                'expires_at': expires_at,
+                'verified': False
+            }
         
         # Mock SMS - print to console
         print(f"\n{'='*50}")
@@ -56,38 +69,63 @@ def verify_otp(phone_number: str, otp_code: str) -> Dict[str, Any]:
     try:
         supabase = get_supabase_client()
         
-        # Find valid OTP
-        result = supabase.table('otp_verifications')\
-            .select('*')\
-            .eq('phone_number', phone_number)\
-            .eq('otp_code', otp_code)\
-            .eq('verified', False)\
-            .gt('expires_at', datetime.utcnow().isoformat())\
-            .order('created_at', desc=True)\
-            .limit(1)\
-            .execute()
-        
-        if not result.data:
-            return {
-                'success': False,
-                'error': 'Invalid or expired OTP'
-            }
-        
-        otp_record = result.data[0]
-        
-        # Mark as verified
-        supabase.table('otp_verifications')\
-            .update({'verified': True})\
-            .eq('id', otp_record['id'])\
-            .execute()
-        
-        # Get or create user
-        user = get_or_create_user(phone_number)
+        # Try database first
+        try:
+            result = supabase.table('otp_verifications')\
+                .select('*')\
+                .eq('phone_number', phone_number)\
+                .eq('otp_code', otp_code)\
+                .eq('verified', False)\
+                .gt('expires_at', datetime.utcnow().isoformat())\
+                .order('created_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if result.data:
+                otp_record = result.data[0]
+                
+                # Mark as verified
+                supabase.table('otp_verifications')\
+                    .update({'verified': True})\
+                    .eq('id', otp_record['id'])\
+                    .execute()
+                
+                # Get or create user
+                user = get_or_create_user(phone_number)
+                
+                return {
+                    'success': True,
+                    'user': user,
+                    'message': 'OTP verified successfully'
+                }
+        except Exception as db_error:
+            # Fallback to in-memory storage
+            print(f"⚠️  Using in-memory OTP verification")
+            if phone_number in _otp_storage:
+                stored = _otp_storage[phone_number]
+                if (stored['otp_code'] == otp_code and 
+                    stored['expires_at'] > datetime.utcnow() and 
+                    not stored['verified']):
+                    
+                    stored['verified'] = True
+                    
+                    # Create mock user
+                    user = {
+                        'id': phone_number,
+                        'phone_number': phone_number,
+                        'created_at': datetime.utcnow().isoformat()
+                    }
+                    _user_storage[phone_number] = user
+                    
+                    return {
+                        'success': True,
+                        'user': user,
+                        'message': 'OTP verified successfully'
+                    }
         
         return {
-            'success': True,
-            'user': user,
-            'message': 'OTP verified successfully'
+            'success': False,
+            'error': 'Invalid or expired OTP'
         }
         
     except Exception as e:
