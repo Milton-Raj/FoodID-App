@@ -17,11 +17,15 @@ export const LoginScreen = ({ navigation }) => {
         }
 
         setLoading(true);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
         try {
             const response = await fetch(`${API_URL}/auth/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone_number: phoneNumber })
+                body: JSON.stringify({ phone_number: phoneNumber }),
+                signal: controller.signal
             });
 
             const data = await response.json();
@@ -33,12 +37,17 @@ export const LoginScreen = ({ navigation }) => {
                     otpCode: data.otp_code // For testing only
                 });
             } else {
-                Alert.alert('Error', 'Failed to send OTP');
+                Alert.alert('Error', data.detail || 'Failed to send OTP');
             }
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to send OTP. Please try again.');
+            if (error.name === 'AbortError') {
+                Alert.alert('Connection Error', 'Request timed out. Please check your network connection and ensure the server IP is correct.');
+            } else {
+                Alert.alert('Connection Error', 'Failed to connect to server. Please check your network connection.');
+            }
         } finally {
+            clearTimeout(timeoutId);
             setLoading(false);
         }
     };
