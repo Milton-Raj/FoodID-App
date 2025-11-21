@@ -1,8 +1,12 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
+from services.supabase_client import (
+    get_user_notifications,
+    get_user_by_id,
+    mark_notification_read as mark_read_in_db
+)
 
 router = APIRouter()
 
@@ -13,83 +17,72 @@ class NotificationResponse(BaseModel):
     title: str
     message: str
     notification_type: str
-    extra_data: Optional[str] # Changed from metadata to extra_data and type to str
+    extra_data: Optional[dict]
     read: bool
-    created_at: datetime
-
-# Mock notifications database
-mock_notifications = [
-    {
-        "id": 1,
-        "user_id": 1,
-        "title": "Welcome to FoodID! 🎉",
-        "message": "Start scanning your meals to track nutrition and earn coins with every scan!",
-        "notification_type": "system",
-        "extra_data": json.dumps({"welcome_bonus": 10}),
-        "read": False,
-        "created_at": datetime.utcnow() - timedelta(hours=2)
-    },
-    {
-        "id": 2,
-        "user_id": 1,
-        "title": "First Scan Complete! 🏆",
-        "message": "Congratulations on your first food scan. You earned 1 coin!",
-        "notification_type": "achievement",
-        "extra_data": json.dumps({"coins_earned": 1, "food_name": "Apple"}),
-        "read": True,
-        "created_at": datetime.utcnow() - timedelta(days=1)
-    },
-    {
-        "id": 3,
-        "user_id": 1,
-        "title": "Referral Bonus Available 👥",
-        "message": "Invite friends to earn bonus coins. Share FoodID today!",
-        "notification_type": "referral",
-        "extra_data": json.dumps({"bonus_per_referral": 5}),
-        "read": False,
-        "created_at": datetime.utcnow() - timedelta(days=2)
-    }
-]
+    created_at: str
 
 @router.get("/notifications/{user_id}")
 async def get_notifications(user_id: int, limit: int = 50):
-    """Get all notifications for a user"""
-    user_notifications = [n for n in mock_notifications if n["user_id"] == user_id]
+    """Get all notifications for a user from Supabase"""
+    # Verify user exists
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     
-    # Sort by created_at descending
-    user_notifications.sort(key=lambda x: x["created_at"], reverse=True)
-    
-    return user_notifications[:limit]
+    # Get notifications from Supabase
+    notifications = get_user_notifications(user_id, limit)
+    return notifications
 
 @router.get("/notifications/detail/{notification_id}")
 async def get_notification_detail(notification_id: int):
-    """Get specific notification details"""
-    for notification in mock_notifications:
-        if notification["id"] == notification_id:
-            return notification
+    """Get specific notification details from Supabase"""
+    from services.supabase_client import get_supabase_client
     
-    raise HTTPException(status_code=404, detail="Notification not found")
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table('notifications').select('*').eq('id', notification_id).single().execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        return result.data
+    except Exception as e:
+        print(f"Error fetching notification: {e}")
+        raise HTTPException(status_code=404, detail="Notification not found")
 
 @router.patch("/notifications/{notification_id}/read")
 async def mark_notification_read(notification_id: int):
-    """Mark notification as read"""
-    for notification in mock_notifications:
-        if notification["id"] == notification_id:
-            notification["read"] = True
-            return {
-                "success": True,
-                "message": "Notification marked as read"
-            }
+    """Mark notification as read in Supabase"""
+    success = mark_read_in_db(notification_id)
     
-    raise HTTPException(status_code=404, detail="Notification not found")
+    if not success:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    return {
+        "success": True,
+        "message": "Notification marked as read"
+    }
 
 @router.get("/notifications/{user_id}/unread-count")
 async def get_unread_count(user_id: int):
-    """Get count of unread notifications"""
-    user_notifications = [n for n in mock_notifications if n["user_id"] == user_id]
-    unread_count = sum(1 for n in user_notifications if not n["read"])
+    """Get count of unread notifications from Supabase"""
+    from services.supabase_client import get_supabase_client
     
-    return {
-        "user_id": user_id,
-        "unread_count": unread_count
-    }
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table('notifications')\
+            .select('id', count='exact')\
+            .eq('user_id', user_id)\
+            .eq('read', False)\
+            .execute()
+        
+        return {
+            "user_id": user_id,
+            "unread_count": result.count or 0
+        }
+    except Exception as e:
+        print(f"Error getting unread count: {e}")
+        return {
+            "user_id": user_id,
+            "unread_count": 0
+        }

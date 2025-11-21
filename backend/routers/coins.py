@@ -2,6 +2,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
+from services.supabase_client import (
+    get_user_by_id,
+    get_user_coin_history,
+    create_coin_transaction
+)
 
 router = APIRouter()
 
@@ -16,61 +21,48 @@ class CoinTransactionResponse(BaseModel):
     amount: int
     transaction_type: str
     description: str
-    created_at: datetime
-
-# Mock coin transactions database
-mock_coin_transactions = []
-transaction_id_counter = 1
-
-# Mock user balances
-mock_user_balances = {
-    1: 0  # Default user starts with 0 coins
-}
+    created_at: str
 
 @router.get("/coins/{user_id}/balance")
 async def get_coin_balance(user_id: int):
-    """Get current coin balance for a user"""
-    balance = mock_user_balances.get(user_id, 0)
+    """Get current coin balance for a user from Supabase"""
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     
     return {
         "user_id": user_id,
-        "balance": balance
+        "balance": user.get('coins', 0)
     }
 
 @router.get("/coins/{user_id}/history")
 async def get_coin_history(user_id: int, limit: int = 50):
-    """Get coin transaction history for a user"""
-    user_transactions = [t for t in mock_coin_transactions if t["user_id"] == user_id]
+    """Get coin transaction history for a user from Supabase"""
+    # Verify user exists
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     
-    # Sort by created_at descending
-    user_transactions.sort(key=lambda x: x["created_at"], reverse=True)
-    
-    return user_transactions[:limit]
+    # Get transaction history from Supabase
+    transactions = get_user_coin_history(user_id, limit)
+    return transactions
 
 def award_coins(user_id: int, amount: int, transaction_type: str, description: str):
-    """Helper function to award coins to a user"""
-    global transaction_id_counter
+    """Helper function to award coins to a user in Supabase"""
+    # Create transaction and update balance in Supabase
+    transaction = create_coin_transaction(user_id, amount, transaction_type, description)
     
-    # Create transaction record
-    transaction = {
-        "id": transaction_id_counter,
-        "user_id": user_id,
-        "amount": amount,
-        "transaction_type": transaction_type,
-        "description": description,
-        "created_at": datetime.utcnow()
-    }
+    if not transaction:
+        return {
+            "transaction": None,
+            "new_balance": 0
+        }
     
-    mock_coin_transactions.append(transaction)
-    transaction_id_counter += 1
-    
-    # Update user balance
-    if user_id not in mock_user_balances:
-        mock_user_balances[user_id] = 0
-    
-    mock_user_balances[user_id] += amount
+    # Get updated balance
+    user = get_user_by_id(user_id)
+    new_balance = user.get('coins', 0) if user else 0
     
     return {
         "transaction": transaction,
-        "new_balance": mock_user_balances[user_id]
+        "new_balance": new_balance
     }
