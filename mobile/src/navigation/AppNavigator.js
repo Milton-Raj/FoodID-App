@@ -9,7 +9,6 @@ import { CameraScreen } from '../screens/CameraScreen';
 import { ResultsScreen } from '../screens/ResultsScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
-import { SendOTPScreen } from '../screens/SendOTPScreen';
 
 const Stack = createStackNavigator();
 
@@ -25,7 +24,6 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Onboarding" component={OnboardingScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="OTP" component={OTPScreen} />
-                <Stack.Screen name="SendOTP" component={SendOTPScreen} />
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="Camera" component={CameraScreen} />
                 <Stack.Screen name="Results" component={ResultsScreen} />

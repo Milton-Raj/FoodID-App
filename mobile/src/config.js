@@ -14,3 +14,20 @@ export const mockSendOTP = (phoneNumber) => {
         }, 1000);
     });
 };
+
+// Mock function to simulate verifying OTP
+export const mockVerifyOTP = (phoneNumber, otpCode) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            // Accept any OTP for demo purposes, or specific ones
+            resolve({
+                success: true,
+                user: {
+                    id: 'user_123',
+                    phone_number: phoneNumber,
+                    name: 'Demo User'
+                }
+            });
+        }, 1000);
+    });
+};

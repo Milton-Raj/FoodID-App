@@ -4,15 +4,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
-import { API_URL } from '../config';
+import { API_URL, mockSendOTP } from '../config';
 
 export const LoginScreen = ({ navigation }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSendOTP = () => {
-        // Directly navigate to SendOTP screen for dummy flow
-        navigation.navigate('SendOTP', { phoneNumber });
+    const handleSendOTP = async () => {
+        if (!phoneNumber || phoneNumber.length < 10) {
+            Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // Use mockSendOTP for dummy flow
+            const { otp } = await mockSendOTP(phoneNumber);
+
+            // Navigate to OTP screen with fetched OTP
+            navigation.navigate('OTP', {
+                phoneNumber,
+                otpCode: otp
+            });
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'Failed to send OTP');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
