@@ -8,6 +8,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { CameraScreen } from '../screens/CameraScreen';
 import { ResultsScreen } from '../screens/ResultsScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { HistoryScreen } from '../screens/HistoryScreen';
 
 const Stack = createStackNavigator();
 
@@ -27,6 +28,7 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Camera" component={CameraScreen} />
                 <Stack.Screen name="Results" component={ResultsScreen} />
                 <Stack.Screen name="Notifications" component={NotificationsScreen} />
+                <Stack.Screen name="History" component={HistoryScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

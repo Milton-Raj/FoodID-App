@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Image } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, Upload } from 'lucide-react-native';
@@ -8,6 +9,7 @@ import { NotificationButton } from '../components/NotificationButton';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';
+import { API_URL } from '../config';
 
 export const HomeScreen = ({ navigation }) => {
     const [recentScans, setRecentScans] = useState([]);
@@ -99,7 +101,12 @@ export const HomeScreen = ({ navigation }) => {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Recent Scans</Text>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Recent Scans</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('History')}>
+                            <Text style={styles.viewAllText}>View All</Text>
+                        </TouchableOpacity>
+                    </View>
                     {loading ? (
                         <View style={styles.loadingContainer}>
                             <ActivityIndicator size="small" color={colors.primary} />
@@ -116,11 +123,18 @@ export const HomeScreen = ({ navigation }) => {
                                     style={styles.scanItem}
                                     onPress={() => handleScanPress(scan)}
                                 >
+                                    {/* Thumbnail Image */}
+                                    <Image
+                                        source={{ uri: scan.image_path.startsWith('http') ? scan.image_path : `${API_URL}/static/${scan.image_path.split('/').pop()}` }}
+                                        style={styles.scanImage}
+                                    />
                                     <View style={styles.scanInfo}>
-                                        <Text style={styles.scanName}>{scan.food_name}</Text>
-                                        <Text style={styles.scanDate}>
-                                            {new Date(scan.created_at).toLocaleDateString()}
-                                        </Text>
+                                        <View style={styles.scanInfo}>
+                                            <Text style={styles.scanName}>{scan.food_name}</Text>
+                                            <Text style={styles.scanDate}>
+                                                {new Date(scan.created_at).toLocaleDateString()}
+                                            </Text>
+                                        </View>
                                     </View>
                                     <View style={styles.scanBadge}>
                                         <Text style={styles.scanConfidence}>{scan.confidence}%</Text>
@@ -201,9 +215,19 @@ const styles = StyleSheet.create({
     section: {
         paddingHorizontal: 24,
     },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
     sectionTitle: {
         ...typography.h3,
-        marginBottom: 16,
+    },
+    viewAllText: {
+        ...typography.bodySmall,
+        color: colors.primary,
+        fontWeight: 'bold',
     },
     emptyState: {
         padding: 24,
@@ -226,14 +250,18 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     scanItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
         backgroundColor: colors.surface,
         borderRadius: 12,
-        padding: 16,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: colors.border,
+        marginBottom: 8,
+    },
+    scanImage: {
+        width: 60,
+        height: 60,
+        borderRadius: 8,
+        marginRight: 12,
     },
     scanInfo: {
         flex: 1,

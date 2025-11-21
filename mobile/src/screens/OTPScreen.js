@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../config';
 
 export const OTPScreen = ({ route, navigation }) => {
     const { phoneNumber, otpCode } = route.params;
@@ -49,7 +50,7 @@ export const OTPScreen = ({ route, navigation }) => {
     const verifyOTP = async (otpString) => {
         setLoading(true);
         try {
-            const response = await fetch('http://192.168.225.120:8000/auth/verify-otp', {
+            const response = await fetch(`${API_URL}/auth/verify-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

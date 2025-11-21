@@ -18,3 +18,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 mobile/.env
+
+# Local DB and Uploads
+foodid.db
+uploads/
+backend/uploads/
