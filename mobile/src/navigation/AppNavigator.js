@@ -13,6 +13,7 @@ import { HistoryScreen } from '../screens/HistoryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { ReferralScreen } from '../screens/ReferralScreen';
 import { CoinHistoryScreen } from '../screens/CoinHistoryScreen';
+import { TransferScreen } from '../screens/TransferScreen';
 
 const Stack = createStackNavigator();
 
@@ -37,6 +38,7 @@ export const AppNavigator = () => {
                 <Stack.Screen name="Profile" component={ProfileScreen} />
                 <Stack.Screen name="Referral" component={ReferralScreen} />
                 <Stack.Screen name="CoinHistory" component={CoinHistoryScreen} />
+                <Stack.Screen name="Transfer" component={TransferScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

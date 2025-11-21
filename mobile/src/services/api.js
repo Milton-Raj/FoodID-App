@@ -58,24 +58,43 @@ export const api = {
             throw error;
         }
     },
-    analyzeFood: async (photoUri) => {
+    analyzeFood: async (photoUri, userId = 1) => {
         try {
-            // Use mock data for demo
-            console.log('Analyzing food (MOCK)...');
-            return await mockAnalyzeFood(photoUri);
+            const formData = new FormData();
+            formData.append('file', {
+                uri: photoUri,
+                type: 'image/jpeg',
+                name: 'food.jpg',
+            });
+
+            const response = await fetch(`${DEV_API_URL}/api/scan/analyze?user_id=${userId}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to analyze food');
+            }
+            return data;
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('Analyze Food Error:', error);
             throw error;
         }
     },
 
     getRecentScans: async (userId = 1, limit = 10) => {
         try {
-            // Use mock data for demo
-            console.log('Fetching recent scans (MOCK)...');
-            return await mockGetRecentScans(userId);
+            const response = await fetch(`${DEV_API_URL}/api/scan/recent?user_id=${userId}&limit=${limit}`);
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to fetch recent scans');
+            }
+            return data;
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('Get Recent Scans Error:', error);
             throw error;
         }
     },

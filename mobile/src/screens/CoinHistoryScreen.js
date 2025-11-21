@@ -5,6 +5,9 @@ import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Button } from '../components/Button';
+import { Send } from 'lucide-react-native';
 
 export const CoinHistoryScreen = ({ navigation }) => {
     const [transactions, setTransactions] = useState([]);
@@ -12,11 +15,23 @@ export const CoinHistoryScreen = ({ navigation }) => {
     const [balance, setBalance] = useState(0);
 
     useEffect(() => {
-        fetchCoinData();
+        loadUserData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const fetchCoinData = async () => {
+    const loadUserData = async () => {
+        try {
+            const userStr = await AsyncStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                fetchCoinData(user.id);
+            }
+        } catch (error) {
+            console.error('Failed to load user data:', error);
+        }
+    };
+
+    const fetchCoinData = async (userId) => {
         try {
             setLoading(true);
 
@@ -26,8 +41,8 @@ export const CoinHistoryScreen = ({ navigation }) => {
             );
 
             const dataPromise = Promise.all([
-                api.getCoinHistory(1),
-                api.getCoinBalance(1),
+                api.getCoinHistory(userId),
+                api.getCoinBalance(userId),
             ]);
 
             const [historyData, balanceData] = await Promise.race([dataPromise, timeout]);
@@ -124,6 +139,12 @@ export const CoinHistoryScreen = ({ navigation }) => {
                     <Text style={styles.balanceAmount}>{balance}</Text>
                     <Text style={styles.coinSymbolLarge}>●</Text>
                 </View>
+                <Button
+                    title="Transfer Coins"
+                    onPress={() => navigation.navigate('Transfer')}
+                    style={styles.transferButton}
+                    icon={<Send size={20} color={colors.white} />}
+                />
             </View>
 
             {loading ? (
@@ -291,5 +312,9 @@ const styles = StyleSheet.create({
         fontSize: 32,
         color: colors.secondary, // Gold color
         marginLeft: 8,
+    },
+    transferButton: {
+        marginTop: 16,
+        width: '100%',
     },
 });

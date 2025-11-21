@@ -5,7 +5,8 @@ from datetime import datetime
 from services.supabase_client import (
     get_user_notifications,
     get_user_by_id,
-    mark_notification_read as mark_read_in_db
+    mark_notification_read as mark_read_in_db,
+    create_notification
 )
 
 router = APIRouter()
@@ -86,3 +87,18 @@ async def get_unread_count(user_id: int):
             "user_id": user_id,
             "unread_count": 0
         }
+
+# -------------------------------------------------
+# Create Notification Endpoint
+# -------------------------------------------------
+
+@router.post("/create")
+async def create_notification_endpoint(user_id: int, title: str, message: str, notification_type: str = "system", extra_data: dict = None):
+    """Create a new notification for a user."""
+    notif = create_notification(user_id, title, message, notification_type, extra_data)
+    if not notif:
+        raise HTTPException(status_code=500, detail="Failed to create notification")
+    return {
+        "success": True,
+        "notification": notif
+    }

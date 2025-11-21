@@ -81,3 +81,21 @@ async def get_referral_stats(user_id: int):
     }
     
     return stats
+
+# -------------------------------------------------
+# Referral Redeem Endpoint
+# -------------------------------------------------
+
+@router.post("/referrals/redeem")
+async def redeem_referral_endpoint(referral_id: int, new_user_id: int):
+    """Redeem a referral and award bonus coins to both parties.
+    Returns the updated referral record.
+    """
+    # Verify referral exists and user exists are handled in service
+    result = redeem_referral(referral_id, new_user_id)
+    if not result:
+        raise HTTPException(status_code=400, detail="Referral redemption failed")
+    return {
+        "success": True,
+        "referral": result
+    }

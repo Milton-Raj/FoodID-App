@@ -5,7 +5,8 @@ from datetime import datetime
 from services.supabase_client import (
     get_user_by_id,
     get_user_coin_history,
-    create_coin_transaction
+    create_coin_transaction,
+    transfer_coins
 )
 
 router = APIRouter()
@@ -65,4 +66,23 @@ def award_coins(user_id: int, amount: int, transaction_type: str, description: s
     return {
         "transaction": transaction,
         "new_balance": new_balance
+    }
+
+@router.post("/transfer")
+async def transfer_coins_endpoint(sender_id: int, receiver_phone: str, amount: int):
+    """Transfer coins from sender to receiver.
+    Returns new balances.
+    """
+    # Verify sender exists
+    sender = get_user_by_id(sender_id)
+    if not sender:
+        raise HTTPException(status_code=404, detail="Sender not found")
+    # Perform transfer via service function
+    result = transfer_coins(sender_id, receiver_phone, amount)
+    if not result:
+        raise HTTPException(status_code=400, detail="Transfer failed")
+    return {
+        "success": True,
+        "sender_new_balance": result["sender_new_balance"],
+        "receiver_new_balance": result["receiver_new_balance"]
     }

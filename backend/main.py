@@ -20,8 +20,8 @@ app.add_middleware(
 )
 
 # Register routers
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(scan.router, prefix="/scan", tags=["scan"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(scan.router, prefix="/api/scan", tags=["scan"])
 app.include_router(profile.router, prefix="/api", tags=["profile"])
 app.include_router(notifications.router, prefix="/api", tags=["notifications"])
 app.include_router(referrals.router, prefix="/api", tags=["referrals"])

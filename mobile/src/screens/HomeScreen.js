@@ -13,6 +13,7 @@ import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';
 import { API_URL } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const HomeScreen = ({ navigation }) => {
     const [recentScans, setRecentScans] = useState([]);
@@ -22,15 +23,27 @@ export const HomeScreen = ({ navigation }) => {
     // Refresh data when screen comes into focus
     useFocusEffect(
         React.useCallback(() => {
-            fetchRecentScans();
-            fetchCoinBalance();
+            loadUserData();
         }, [])
     );
 
-    const fetchRecentScans = async () => {
+    const loadUserData = async () => {
+        try {
+            const userStr = await AsyncStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                fetchRecentScans(user.id);
+                fetchCoinBalance(user.id);
+            }
+        } catch (error) {
+            console.error('Failed to load user data:', error);
+        }
+    };
+
+    const fetchRecentScans = async (userId) => {
         try {
             setLoading(true);
-            const scans = await api.getRecentScans();
+            const scans = await api.getRecentScans(userId);
             setRecentScans(scans);
         } catch (error) {
             console.error('Failed to fetch recent scans:', error);
@@ -39,9 +52,9 @@ export const HomeScreen = ({ navigation }) => {
         }
     };
 
-    const fetchCoinBalance = async () => {
+    const fetchCoinBalance = async (userId) => {
         try {
-            const data = await api.getCoinBalance(1);
+            const data = await api.getCoinBalance(userId);
             setCoins(data.balance || 0);
         } catch (error) {
             console.error('Failed to fetch coin balance:', error);

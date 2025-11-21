@@ -5,6 +5,8 @@ import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SkeletonLoader } from '../components/SkeletonLoader';
 
 export const NotificationsScreen = ({ navigation }) => {
     const [notifications, setNotifications] = useState([]);
@@ -12,13 +14,25 @@ export const NotificationsScreen = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        fetchNotifications();
+        loadUserData();
     }, []);
 
-    const fetchNotifications = async () => {
+    const loadUserData = async () => {
+        try {
+            const userStr = await AsyncStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                fetchNotifications(user.id);
+            }
+        } catch (error) {
+            console.error('Failed to load user data:', error);
+        }
+    };
+
+    const fetchNotifications = async (userId) => {
         try {
             setLoading(true);
-            const data = await api.getNotifications(1);
+            const data = await api.getNotifications(userId);
             setNotifications(data || []);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
@@ -30,9 +44,15 @@ export const NotificationsScreen = ({ navigation }) => {
         }
     };
 
-    const handleRefresh = () => {
+    const handleRefresh = async () => {
         setRefreshing(true);
-        fetchNotifications();
+        const userStr = await AsyncStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            fetchNotifications(user.id);
+        } else {
+            setRefreshing(false);
+        }
     };
 
     const handleNotificationPress = (notification) => {
@@ -49,9 +69,15 @@ export const NotificationsScreen = ({ navigation }) => {
                 <View style={{ width: 40 }} />
             </View>
 
-            {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={colors.primary} />
+            {loading && !refreshing ? (
+                <View style={styles.content}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <View key={i} style={styles.skeletonCard}>
+                            <SkeletonLoader width="60%" height={20} style={{ marginBottom: 8 }} />
+                            <SkeletonLoader width="90%" height={16} style={{ marginBottom: 8 }} />
+                            <SkeletonLoader width="30%" height={14} />
+                        </View>
+                    ))}
                 </View>
             ) : (
                 <ScrollView
@@ -154,5 +180,13 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary,
         marginLeft: 8,
         marginTop: 8,
+    },
+    skeletonCard: {
+        backgroundColor: colors.surface,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: colors.border,
     },
 });

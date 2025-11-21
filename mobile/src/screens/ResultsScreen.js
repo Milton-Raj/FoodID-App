@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { NutritionCard } from '../components/NutritionCard';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const ResultsScreen = ({ route, navigation }) => {
     const { photoUri, scanData } = route.params || {};
@@ -36,7 +37,20 @@ export const ResultsScreen = ({ route, navigation }) => {
                 setError(null);
                 console.log('Analyzing food with URI:', photoUri);
                 const { api } = require('../services/api');
-                const result = await api.analyzeFood(photoUri);
+
+                // Get user ID
+                let userId = 1;
+                try {
+                    const userStr = await AsyncStorage.getItem('user');
+                    if (userStr) {
+                        const user = JSON.parse(userStr);
+                        userId = user.id;
+                    }
+                } catch (e) {
+                    console.warn('Failed to get user ID for scan:', e);
+                }
+
+                const result = await api.analyzeFood(photoUri, userId);
                 console.log('Analysis result:', result);
                 setData(result);
             } catch (err) {

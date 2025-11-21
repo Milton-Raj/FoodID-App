@@ -20,16 +20,14 @@ export const LoginScreen = ({ navigation }) => {
         try {
             // Use real API to send OTP
             const data = await api.sendOTP(phoneNumber);
-
-            console.log('OTP sent:', data.otp_code); // For testing
-
-            // Navigate to OTP screen with fetched OTP
+            console.log('OTP sent, response:', data);
+            // Navigate to OTP screen (OTP code may be returned for testing)
             navigation.navigate('OTP', {
                 phoneNumber,
-                otpCode: data.otp_code // Backend returns OTP for testing
+                otpCode: data.otp_code // may be undefined in production
             });
         } catch (error) {
-            console.error('Send OTP Error:', error);
+            console.error('Send OTP error:', error);
             Alert.alert('Error', error.message || 'Failed to send OTP');
         } finally {
             setLoading(false);
