@@ -23,7 +23,7 @@ export const OTPScreen = ({ route, navigation }) => {
                 verifyOTP(otpArray.join(''));
             }, 1000);
         }
-    }, [otpCode]);
+    }, [otpCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleOTPChange = (value, index) => {
         const newOTP = [...otp];
