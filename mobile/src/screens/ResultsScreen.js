@@ -32,12 +32,15 @@ export const ResultsScreen = ({ route, navigation }) => {
             try {
                 setLoading(true);
                 setError(null);
+                console.log('Analyzing food with URI:', photoUri);
                 const { api } = require('../services/api');
                 const result = await api.analyzeFood(photoUri);
+                console.log('Analysis result:', result);
                 setData(result);
             } catch (err) {
+                console.error('Analysis error:', err);
+                console.error('Error details:', err.message, err.stack);
                 setError('Failed to analyze food. Please try again.');
-                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -115,6 +118,28 @@ export const ResultsScreen = ({ route, navigation }) => {
                             </View>
                         ))}
                     </View>
+
+                    {/* Food History */}
+                    {mockData.history && (
+                        <View style={styles.historySection}>
+                            <Text style={styles.sectionTitle}>Food History</Text>
+
+                            <View style={styles.historyCard}>
+                                <Text style={styles.historyLabel}>🌍 Origin</Text>
+                                <Text style={styles.historyText}>{mockData.history.origin}</Text>
+                            </View>
+
+                            <View style={styles.historyCard}>
+                                <Text style={styles.historyLabel}>📖 Cultural Significance</Text>
+                                <Text style={styles.historyText}>{mockData.history.cultural}</Text>
+                            </View>
+
+                            <View style={styles.historyCard}>
+                                <Text style={styles.historyLabel}>💡 Fun Fact</Text>
+                                <Text style={styles.historyText}>{mockData.history.funFact}</Text>
+                            </View>
+                        </View>
+                    )}
 
                     {/* Actions */}
                     <View style={styles.actions}>
@@ -227,15 +252,37 @@ const styles = StyleSheet.create({
     },
     chip: {
         backgroundColor: colors.surface,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        marginRight: 8,
+        marginBottom: 8,
         borderWidth: 1,
         borderColor: colors.border,
     },
     chipText: {
-        fontSize: 14,
-        color: colors.text,
+        ...typography.bodySmall,
+    },
+    historySection: {
+        marginTop: 24,
+    },
+    historyCard: {
+        backgroundColor: colors.surface,
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: colors.primary,
+    },
+    historyLabel: {
+        ...typography.h4,
+        marginBottom: 8,
+        color: colors.primary,
+    },
+    historyText: {
+        ...typography.body,
+        lineHeight: 22,
+        color: colors.textSecondary,
     },
     actions: {
         marginBottom: 24,

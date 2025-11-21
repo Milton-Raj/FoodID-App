@@ -141,7 +141,12 @@ def get_nutritional_data(food_name: str) -> Dict[str, Any]:
             'carbs': '33g',
             'fat': '10g',
             'healthScore': 45,
-            'ingredients': ['Dough', 'Tomato Sauce', 'Cheese', 'Toppings']
+            'ingredients': ['Dough', 'Tomato Sauce', 'Cheese', 'Toppings'],
+            'history': {
+                'origin': 'Naples, Italy (18th century)',
+                'cultural': 'Pizza became popular worldwide after World War II. The Margherita pizza was created in 1889 to honor Queen Margherita of Italy.',
+                'funFact': 'Americans eat approximately 350 slices of pizza per second!'
+            }
         },
         'salad': {
             'calories': 150,
@@ -149,7 +154,12 @@ def get_nutritional_data(food_name: str) -> Dict[str, Any]:
             'carbs': '12g',
             'fat': '9g',
             'healthScore': 92,
-            'ingredients': ['Lettuce', 'Vegetables', 'Dressing']
+            'ingredients': ['Lettuce', 'Vegetables', 'Dressing'],
+            'history': {
+                'origin': 'Ancient Rome and Greece',
+                'cultural': 'The word "salad" comes from the Latin "sal" meaning salt. Romans used to salt their leafy greens and vegetables.',
+                'funFact': 'Caesar salad was invented in Tijuana, Mexico, not Italy!'
+            }
         },
         'burger': {
             'calories': 540,
@@ -157,7 +167,12 @@ def get_nutritional_data(food_name: str) -> Dict[str, Any]:
             'carbs': '45g',
             'fat': '28g',
             'healthScore': 38,
-            'ingredients': ['Bun', 'Beef Patty', 'Lettuce', 'Tomato', 'Cheese']
+            'ingredients': ['Bun', 'Beef Patty', 'Lettuce', 'Tomato', 'Cheese'],
+            'history': {
+                'origin': 'Hamburg, Germany / United States (late 1800s)',
+                'cultural': 'The hamburger became an American icon in the 20th century. It\'s named after Hamburg, Germany, where a similar dish originated.',
+                'funFact': 'Americans consume about 50 billion burgers per year!'
+            }
         },
         'chicken': {
             'calories': 335,
@@ -165,7 +180,12 @@ def get_nutritional_data(food_name: str) -> Dict[str, Any]:
             'carbs': '0g',
             'fat': '19g',
             'healthScore': 78,
-            'ingredients': ['Chicken Breast', 'Seasonings']
+            'ingredients': ['Chicken Breast', 'Seasonings'],
+            'history': {
+                'origin': 'Domesticated in Southeast Asia (8000 years ago)',
+                'cultural': 'Chicken is the most common type of poultry in the world. It\'s a staple protein in cuisines across all continents.',
+                'funFact': 'There are more chickens on Earth than any other bird species!'
+            }
         },
         'rice': {
             'calories': 206,
@@ -173,7 +193,12 @@ def get_nutritional_data(food_name: str) -> Dict[str, Any]:
             'carbs': '45g',
             'fat': '0.4g',
             'healthScore': 65,
-            'ingredients': ['Rice', 'Water']
+            'ingredients': ['Rice', 'Water'],
+            'history': {
+                'origin': 'China and India (over 5000 years ago)',
+                'cultural': 'Rice is a staple food for more than half of the world\'s population. It plays a central role in Asian cultures and ceremonies.',
+                'funFact': 'There are over 40,000 varieties of rice worldwide!'
+            }
         },
         'pasta': {
             'calories': 371,
@@ -181,7 +206,12 @@ def get_nutritional_data(food_name: str) -> Dict[str, Any]:
             'carbs': '74g',
             'fat': '1.5g',
             'healthScore': 55,
-            'ingredients': ['Pasta', 'Sauce']
+            'ingredients': ['Pasta', 'Sauce'],
+            'history': {
+                'origin': 'Italy (13th century)',
+                'cultural': 'While pasta is synonymous with Italian cuisine, similar noodles existed in ancient China. Italy perfected the art of pasta making.',
+                'funFact': 'There are over 600 different shapes of pasta produced worldwide!'
+            }
         },
         'sandwich': {
             'calories': 300,
@@ -189,7 +219,12 @@ def get_nutritional_data(food_name: str) -> Dict[str, Any]:
             'carbs': '40g',
             'fat': '10g',
             'healthScore': 60,
-            'ingredients': ['Bread', 'Meat', 'Vegetables', 'Condiments']
+            'ingredients': ['Bread', 'Meat', 'Vegetables', 'Condiments'],
+            'history': {
+                'origin': 'England (18th century)',
+                'cultural': 'Named after the Earl of Sandwich who wanted to eat without leaving his gambling table. The concept revolutionized quick meals.',
+                'funFact': 'The average American eats about 300 sandwiches per year!'
+            }
         }
     }
     
@@ -206,5 +241,10 @@ def get_nutritional_data(food_name: str) -> Dict[str, Any]:
         'carbs': '30g',
         'fat': '8g',
         'healthScore': 60,
-        'ingredients': ['Various ingredients']
+        'ingredients': ['Various ingredients'],
+        'history': {
+            'origin': 'Various regions worldwide',
+            'cultural': 'This dish has been enjoyed by cultures around the world for generations.',
+            'funFact': 'Food brings people together across all cultures!'
+        }
     }
