@@ -4,13 +4,14 @@ from typing import Optional
 import os
 import shutil
 from datetime import datetime
+from services.supabase_client import get_user_by_id, update_user_profile
 
 router = APIRouter()
 
 # Pydantic Models
 class ProfileUpdate(BaseModel):
     name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
 
 class ProfileResponse(BaseModel):
     id: int
@@ -19,27 +20,13 @@ class ProfileResponse(BaseModel):
     email: Optional[str]
     profile_image: Optional[str]
     coins: int
-    created_at: datetime
-    updated_at: datetime
-
-# Mock database for now - will integrate with real DB
-mock_users = {
-    1: {
-        "id": 1,
-        "phone_number": "+1234567890",
-        "name": "Demo User",
-        "email": "demo@foodid.com",
-        "profile_image": None,
-        "coins": 0,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
-    }
-}
+    created_at: str
+    updated_at: str
 
 @router.get("/profile/{user_id}")
 async def get_profile(user_id: int):
-    """Get user profile"""
-    user = mock_users.get(user_id)
+    """Get user profile from Supabase"""
+    user = get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -48,24 +35,28 @@ async def get_profile(user_id: int):
 @router.put("/profile/{user_id}")
 async def update_profile(user_id: int, profile: ProfileUpdate):
     """Update user profile (phone_number is not editable)"""
-    user = mock_users.get(user_id)
+    # Verify user exists
+    user = get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Update only editable fields
-    if profile.name is not None:
-        user["name"] = profile.name
-    if profile.email is not None:
-        user["email"] = profile.email
+    # Update profile in Supabase
+    updated_user = update_user_profile(
+        user_id=user_id,
+        name=profile.name,
+        email=profile.email
+    )
     
-    user["updated_at"] = datetime.utcnow()
+    if not updated_user:
+        raise HTTPException(status_code=500, detail="Failed to update profile")
     
-    return user
+    return updated_user
 
 @router.post("/profile/upload-image")
 async def upload_profile_image(user_id: int, file: UploadFile = File(...)):
     """Upload profile image"""
-    user = mock_users.get(user_id)
+    # Verify user exists
+    user = get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -84,9 +75,11 @@ async def upload_profile_image(user_id: int, file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    # Update user profile
-    user["profile_image"] = file_path
-    user["updated_at"] = datetime.utcnow()
+    # Update user profile in Supabase
+    updated_user = update_user_profile(user_id=user_id, profile_image=file_path)
+    
+    if not updated_user:
+        raise HTTPException(status_code=500, detail="Failed to update profile image")
     
     return {
         "success": True,
