@@ -1,12 +1,36 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Camera } from 'lucide-react-native';
+import { Camera, Upload } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/Button';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
 export const HomeScreen = ({ navigation }) => {
+    const pickImage = async () => {
+        // Request permission
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.granted === false) {
+            Alert.alert('Permission Required', 'Permission to access camera roll is required!');
+            return;
+        }
+
+        // Launch image picker
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            // Navigate to results with the selected photo
+            navigation.navigate('Results', { photoUri: result.assets[0].uri });
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -27,6 +51,13 @@ export const HomeScreen = ({ navigation }) => {
                         title="Open Camera"
                         onPress={() => navigation.navigate('Camera')}
                         style={styles.scanButton}
+                    />
+                    <Button
+                        title="Upload Photo"
+                        variant="secondary"
+                        onPress={pickImage}
+                        style={styles.uploadButton}
+                        icon={<Upload size={20} color={colors.primary} />}
                     />
                 </View>
             </View>
@@ -93,6 +124,10 @@ const styles = StyleSheet.create({
     },
     scanButton: {
         width: '100%',
+    },
+    uploadButton: {
+        width: '100%',
+        marginTop: 12,
     },
     section: {
         paddingHorizontal: 24,
