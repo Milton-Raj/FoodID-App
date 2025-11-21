@@ -2,18 +2,57 @@ from fastapi import APIRouter, UploadFile, File, Depends
 from sqlalchemy.orm import Session
 import json
 import os
+from PIL import Image
+import io
 from database import get_db
 from services.ai_recognition import recognize_food, get_nutritional_data
 from services.supabase_client import create_scan, get_recent_scans
 
 router = APIRouter()
 
+def compress_image(file_content: bytes, max_size_kb: int = 500) -> bytes:
+    """Compress image to reduce file size and improve performance"""
+    try:
+        image = Image.open(io.BytesIO(file_content))
+        
+        # Convert to RGB if necessary
+        if image.mode in ('RGBA', 'LA', 'P'):
+            image = image.convert('RGB')
+        
+        # Resize if too large (max 1024px on longest side)
+        max_dimension = 1024
+        if max(image.size) > max_dimension:
+            ratio = max_dimension / max(image.size)
+            new_size = tuple(int(dim * ratio) for dim in image.size)
+            image = image.resize(new_size, Image.Resampling.LANCZOS)
+        
+        # Compress with quality adjustment
+        output = io.BytesIO()
+        quality = 85
+        image.save(output, format='JPEG', quality=quality, optimize=True)
+        
+        # If still too large, reduce quality
+        while output.tell() > max_size_kb * 1024 and quality > 50:
+            output = io.BytesIO()
+            quality -= 10
+            image.save(output, format='JPEG', quality=quality, optimize=True)
+        
+        return output.getvalue()
+    except Exception as e:
+        print(f"Image compression error: {e}")
+        return file_content
+
 @router.post("/analyze")
 async def analyze_food(file: UploadFile = File(...)):
-    # Save file locally
+    # Read and compress image
+    file_content = await file.read()
+    compressed_content = compress_image(file_content)
+    
+    # Save compressed file locally
     file_location = f"uploads/{file.filename}"
-    with open(file_location, "wb+") as file_object:
-        file_object.write(file.file.read())
+    os.makedirs("uploads", exist_ok=True)
+    with open(file_location, "wb") as file_object:
+        file_object.write(compressed_content)
     
     # Use AI to recognize food
     recognition_result = recognize_food(file_location)

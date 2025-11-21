@@ -8,12 +8,20 @@ import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
 export const ResultsScreen = ({ route, navigation }) => {
-    const { photoUri } = route.params || {};
-    const [data, setData] = React.useState(null);
-    const [loading, setLoading] = React.useState(true);
+    const { photoUri, scanData } = route.params || {};
+    const [data, setData] = React.useState(scanData || null);
+    const [loading, setLoading] = React.useState(!scanData);
     const [error, setError] = React.useState(null);
 
     React.useEffect(() => {
+        // If scanData is provided (from recent scans), use it directly
+        if (scanData) {
+            setData(scanData);
+            setLoading(false);
+            return;
+        }
+
+        // Otherwise, analyze the photo
         const fetchData = async () => {
             if (!photoUri) {
                 setError('No photo URI provided.');
@@ -23,8 +31,7 @@ export const ResultsScreen = ({ route, navigation }) => {
 
             try {
                 setLoading(true);
-                setError(null); // Clear previous errors
-                // Import api here to avoid circular deps if any, or just use it directly
+                setError(null);
                 const { api } = require('../services/api');
                 const result = await api.analyzeFood(photoUri);
                 setData(result);
@@ -37,7 +44,7 @@ export const ResultsScreen = ({ route, navigation }) => {
         };
 
         fetchData();
-    }, [photoUri]);
+    }, [photoUri, scanData]);
 
     if (loading) {
         return (

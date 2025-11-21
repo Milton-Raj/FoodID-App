@@ -1,16 +1,25 @@
 import os
 from supabase import create_client, Client
+from functools import lru_cache
 
 # Supabase configuration
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://ieetnyykalsijqncljlj.supabase.co')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllZXRueXlrYWxzaWpxbmNsamxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2NDM5NDksImV4cCI6MjA3OTIxOTk0OX0.tGwiddcjebgeAqKrihFw_sQqxD9lLhxCsf9Zl1MFHRU')
 
-# Create Supabase client
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Singleton pattern for Supabase client (improves performance)
+_supabase_client = None
+
+def get_supabase_client() -> Client:
+    """Get or create Supabase client (singleton pattern for performance)"""
+    global _supabase_client
+    if _supabase_client is None:
+        _supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    return _supabase_client
 
 def create_scan(user_id: int, food_name: str, confidence: int, image_path: str, nutrition_json: str):
     """Create a new scan record in Supabase"""
     try:
+        supabase = get_supabase_client()
         data = {
             'user_id': user_id,
             'food_name': food_name,
@@ -27,6 +36,7 @@ def create_scan(user_id: int, food_name: str, confidence: int, image_path: str, 
 def get_recent_scans(user_id: int, limit: int = 10):
     """Get recent scans for a user"""
     try:
+        supabase = get_supabase_client()
         result = supabase.table('scans')\
             .select('*')\
             .eq('user_id', user_id)\
@@ -41,6 +51,7 @@ def get_recent_scans(user_id: int, limit: int = 10):
 def get_scan_by_id(scan_id: str):
     """Get a specific scan by ID"""
     try:
+        supabase = get_supabase_client()
         result = supabase.table('scans')\
             .select('*')\
             .eq('id', scan_id)\
