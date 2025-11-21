@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CheckCircle, AlertTriangle } from 'lucide-react-native';
+import { CheckCircle, AlertTriangle, ArrowLeft, Camera } from 'lucide-react-native';
 import { Button } from '../components/Button';
 import { NutritionCard } from '../components/NutritionCard';
 import { colors } from '../theme/colors';
@@ -16,7 +16,9 @@ export const ResultsScreen = ({ route, navigation }) => {
     React.useEffect(() => {
         // If scanData is provided (from recent scans), use it directly
         if (scanData) {
-            setData(scanData);
+            // Handle both formats: direct properties or nested nutrition_data
+            const normalizedData = scanData.nutrition_data || scanData;
+            setData(normalizedData);
             setLoading(false);
             return;
         }
@@ -49,6 +51,16 @@ export const ResultsScreen = ({ route, navigation }) => {
         fetchData();
     }, [photoUri, scanData]);
 
+    const handleBackPress = () => {
+        // Go back to home screen
+        navigation.navigate('Home');
+    };
+
+    const handleRetakePress = () => {
+        // Go back to camera
+        navigation.goBack();
+    };
+
     if (loading) {
         return (
             <SafeAreaView style={[styles.container, styles.center]}>
@@ -68,11 +80,33 @@ export const ResultsScreen = ({ route, navigation }) => {
         );
     }
 
-    // Use API data
-    const mockData = data;
+    // Use API data with safe defaults
+    const mockData = {
+        name: data.name || 'Unknown Food',
+        confidence: data.confidence || 0,
+        healthScore: data.healthScore || 0,
+        calories: data.calories || 0,
+        protein: data.protein || 0,
+        carbs: data.carbs || 0,
+        fat: data.fat || 0,
+        ingredients: data.ingredients || [],
+        history: data.history || null,
+    };
 
     return (
-        <SafeAreaView style={styles.container} edges={['bottom']}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            {/* Header with Back and Retake buttons */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={handleBackPress} style={styles.headerButton}>
+                    <ArrowLeft size={24} color={colors.white} />
+                    <Text style={styles.headerButtonText}>Back</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleRetakePress} style={styles.headerButton}>
+                    <Camera size={24} color={colors.white} />
+                    <Text style={styles.headerButtonText}>Retake</Text>
+                </TouchableOpacity>
+            </View>
+
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Image Header */}
                 <View style={styles.imageContainer}>
@@ -103,21 +137,25 @@ export const ResultsScreen = ({ route, navigation }) => {
                     {/* Nutrition Grid */}
                     <Text style={styles.sectionTitle}>Nutrition Facts</Text>
                     <View style={styles.nutritionGrid}>
-                        <NutritionCard label="Calories" value={mockData.calories || 0} unit=" kcal" />
-                        <NutritionCard label="Protein" value={mockData.protein || 0} color={colors.primary} />
-                        <NutritionCard label="Carbs" value={mockData.carbs || 0} color={colors.warning} />
-                        <NutritionCard label="Fat" value={mockData.fat || 0} color={colors.error} />
+                        <NutritionCard label="Calories" value={mockData.calories} unit=" kcal" />
+                        <NutritionCard label="Protein" value={mockData.protein} color={colors.primary} />
+                        <NutritionCard label="Carbs" value={mockData.carbs} color={colors.warning} />
+                        <NutritionCard label="Fat" value={mockData.fat} color={colors.error} />
                     </View>
 
                     {/* Ingredients */}
-                    <Text style={styles.sectionTitle}>Ingredients</Text>
-                    <View style={styles.ingredientsContainer}>
-                        {mockData.ingredients.map((ing, index) => (
-                            <View key={index} style={styles.chip}>
-                                <Text style={styles.chipText}>{ing}</Text>
+                    {mockData.ingredients.length > 0 && (
+                        <>
+                            <Text style={styles.sectionTitle}>Ingredients</Text>
+                            <View style={styles.ingredientsContainer}>
+                                {mockData.ingredients.map((ing, index) => (
+                                    <View key={index} style={styles.chip}>
+                                        <Text style={styles.chipText}>{ing}</Text>
+                                    </View>
+                                ))}
                             </View>
-                        ))}
-                    </View>
+                        </>
+                    )}
 
                     {/* Food History */}
                     {mockData.history && (
@@ -140,17 +178,6 @@ export const ResultsScreen = ({ route, navigation }) => {
                             </View>
                         </View>
                     )}
-
-                    {/* Actions */}
-                    <View style={styles.actions}>
-                        <Button title="Save to Diary" onPress={() => navigation.navigate('Home')} />
-                        <Button
-                            title="Retake Photo"
-                            variant="secondary"
-                            onPress={() => navigation.goBack()}
-                            style={{ marginTop: 12 }}
-                        />
-                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -161,6 +188,28 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.primary,
+    },
+    headerButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 8,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+    headerButtonText: {
+        color: colors.white,
+        fontSize: 14,
+        fontWeight: '600',
     },
     scrollContent: {
         flexGrow: 1,
@@ -283,9 +332,6 @@ const styles = StyleSheet.create({
         ...typography.body,
         lineHeight: 22,
         color: colors.textSecondary,
-    },
-    actions: {
-        marginBottom: 24,
     },
     center: {
         alignItems: 'center',

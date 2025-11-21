@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Image } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Camera, Upload, User, Users } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/Button';
@@ -17,10 +18,13 @@ export const HomeScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [coins, setCoins] = useState(0);
 
-    useEffect(() => {
-        fetchRecentScans();
-        fetchCoinBalance();
-    }, []);
+    // Refresh data when screen comes into focus
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchRecentScans();
+            fetchCoinBalance();
+        }, [])
+    );
 
     const fetchRecentScans = async () => {
         try {
@@ -70,8 +74,22 @@ export const HomeScreen = ({ navigation }) => {
 
     const handleScanPress = (scan) => {
         // Navigate to results screen with scan data
+        // Parse nutrition_json if it's a string, otherwise use nutrition_data
+        let nutritionData = scan.nutrition_data;
+        if (!nutritionData && scan.nutrition_json) {
+            try {
+                nutritionData = typeof scan.nutrition_json === 'string'
+                    ? JSON.parse(scan.nutrition_json)
+                    : scan.nutrition_json;
+            } catch (error) {
+                console.error('Failed to parse nutrition_json:', error);
+                nutritionData = null;
+            }
+        }
+
         navigation.navigate('Results', {
-            scanData: scan.nutrition_data || JSON.parse(scan.nutrition_json)
+            photoUri: scan.image_url || null,
+            scanData: nutritionData,
         });
     };
 
