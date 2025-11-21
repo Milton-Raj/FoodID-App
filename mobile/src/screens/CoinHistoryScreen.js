@@ -195,9 +195,6 @@ const styles = StyleSheet.create({
         color: colors.secondary,
         marginRight: 8,
     },
-    balanceEmoji: {
-        fontSize: 48,
-    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',

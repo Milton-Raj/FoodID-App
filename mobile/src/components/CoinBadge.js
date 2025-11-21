@@ -41,7 +41,7 @@ export const CoinBadge = ({ coins, onPress, animated = false }) => {
                 ])
             ).start();
         }
-    }, [coins, animated]);
+    }, [coins, animated, scaleAnim, pulseAnim]);
 
     const CoinIcon = () => (
         <View style={styles.coinIcon}>
