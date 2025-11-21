@@ -32,4 +32,19 @@ export const api = {
             throw error;
         }
     },
+
+    getRecentScans: async (userId = 1, limit = 10) => {
+        try {
+            const response = await fetch(`${DEV_API_URL}/scan/recent?user_id=${userId}&limit=${limit}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch recent scans');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
 };

@@ -1,16 +1,15 @@
 from fastapi import APIRouter, UploadFile, File, Depends
 from sqlalchemy.orm import Session
-import random
 import json
 import os
 from database import get_db
-from models import Scan
 from services.ai_recognition import recognize_food, get_nutritional_data
+from services.supabase_client import create_scan, get_recent_scans
 
 router = APIRouter()
 
 @router.post("/analyze")
-async def analyze_food(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def analyze_food(file: UploadFile = File(...)):
     # Save file locally
     file_location = f"uploads/{file.filename}"
     with open(file_location, "wb+") as file_object:
@@ -38,17 +37,25 @@ async def analyze_food(file: UploadFile = File(...), db: Session = Depends(get_d
         "ingredients": nutrition_data['ingredients']
     }
     
-    # Save to DB (Mock user ID 1 for now since we don't have auth middleware on this yet)
-    # In real app, get user from token
-    db_scan = Scan(
-        user_id=1, 
-        food_name=result["name"], 
+    # Save to Supabase (Mock user ID 1 for now)
+    create_scan(
+        user_id=1,
+        food_name=result["name"],
         confidence=result["confidence"],
         image_path=file_location,
         nutrition_json=json.dumps(result)
     )
-    db.add(db_scan)
-    db.commit()
-    db.refresh(db_scan)
     
     return result
+
+@router.get("/recent")
+async def get_recent(user_id: int = 1, limit: int = 10):
+    """Get recent scans for a user"""
+    scans = get_recent_scans(user_id, limit)
+    
+    # Parse nutrition_json for each scan
+    for scan in scans:
+        if scan.get('nutrition_json'):
+            scan['nutrition_data'] = json.loads(scan['nutrition_json']) if isinstance(scan['nutrition_json'], str) else scan['nutrition_json']
+    
+    return scans

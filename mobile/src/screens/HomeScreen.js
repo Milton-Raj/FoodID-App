@@ -1,13 +1,33 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, Upload } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/Button';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
+import { api } from '../services/api';
 
 export const HomeScreen = ({ navigation }) => {
+    const [recentScans, setRecentScans] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchRecentScans();
+    }, []);
+
+    const fetchRecentScans = async () => {
+        try {
+            setLoading(true);
+            const scans = await api.getRecentScans();
+            setRecentScans(scans);
+        } catch (error) {
+            console.error('Failed to fetch recent scans:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const pickImage = async () => {
         // Request permission
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -31,43 +51,78 @@ export const HomeScreen = ({ navigation }) => {
         }
     };
 
+    const handleScanPress = (scan) => {
+        // Navigate to results screen with scan data
+        navigation.navigate('Results', {
+            scanData: scan.nutrition_data || JSON.parse(scan.nutrition_json)
+        });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.greeting}>Hello, Foodie! 👋</Text>
-                <Text style={styles.subtitle}>What are you eating today?</Text>
-            </View>
+            <ScrollView>
+                <View style={styles.header}>
+                    <Text style={styles.greeting}>Hello, Foodie! 👋</Text>
+                    <Text style={styles.subtitle}>What are you eating today?</Text>
+                </View>
 
-            <View style={styles.actionContainer}>
-                <View style={styles.scanCard}>
-                    <View style={styles.iconContainer}>
-                        <Camera size={48} color={colors.primary} />
+                <View style={styles.actionContainer}>
+                    <View style={styles.scanCard}>
+                        <View style={styles.iconContainer}>
+                            <Camera size={48} color={colors.primary} />
+                        </View>
+                        <Text style={styles.scanTitle}>Scan your meal</Text>
+                        <Text style={styles.scanSubtitle}>
+                            Get instant nutrition facts and ingredients
+                        </Text>
+                        <Button
+                            title="Open Camera"
+                            onPress={() => navigation.navigate('Camera')}
+                            style={styles.scanButton}
+                        />
+                        <Button
+                            title="Upload Photo"
+                            variant="secondary"
+                            onPress={pickImage}
+                            style={styles.uploadButton}
+                            icon={<Upload size={20} color={colors.primary} />}
+                        />
                     </View>
-                    <Text style={styles.scanTitle}>Scan your meal</Text>
-                    <Text style={styles.scanSubtitle}>
-                        Get instant nutrition facts and ingredients
-                    </Text>
-                    <Button
-                        title="Open Camera"
-                        onPress={() => navigation.navigate('Camera')}
-                        style={styles.scanButton}
-                    />
-                    <Button
-                        title="Upload Photo"
-                        variant="secondary"
-                        onPress={pickImage}
-                        style={styles.uploadButton}
-                        icon={<Upload size={20} color={colors.primary} />}
-                    />
                 </View>
-            </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Recent Scans</Text>
-                <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>No scans yet. Start exploring!</Text>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Recent Scans</Text>
+                    {loading ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="small" color={colors.primary} />
+                        </View>
+                    ) : recentScans.length === 0 ? (
+                        <View style={styles.emptyState}>
+                            <Text style={styles.emptyText}>No scans yet. Start exploring!</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.scansContainer}>
+                            {recentScans.map((scan) => (
+                                <TouchableOpacity
+                                    key={scan.id}
+                                    style={styles.scanItem}
+                                    onPress={() => handleScanPress(scan)}
+                                >
+                                    <View style={styles.scanInfo}>
+                                        <Text style={styles.scanName}>{scan.food_name}</Text>
+                                        <Text style={styles.scanDate}>
+                                            {new Date(scan.created_at).toLocaleDateString()}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.scanBadge}>
+                                        <Text style={styles.scanConfidence}>{scan.confidence}%</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
                 </View>
-            </View>
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -148,5 +203,44 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         ...typography.bodySmall,
+    },
+    loadingContainer: {
+        padding: 24,
+        alignItems: 'center',
+    },
+    scansContainer: {
+        gap: 12,
+    },
+    scanItem: {
+        backgroundColor: colors.surface,
+        borderRadius: 12,
+        padding: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    scanInfo: {
+        flex: 1,
+    },
+    scanName: {
+        ...typography.h4,
+        marginBottom: 4,
+    },
+    scanDate: {
+        ...typography.bodySmall,
+        color: colors.textSecondary,
+    },
+    scanBadge: {
+        backgroundColor: colors.primary,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    scanConfidence: {
+        color: colors.white,
+        fontWeight: 'bold',
+        fontSize: 12,
     },
 });
