@@ -1,6 +1,6 @@
 export const colors = {
     primary: '#0F9D58', // Healthy Green
-    secondary: '#FFB300', // Accent Amber
+    secondary: '#FFD700', // Gold for coins
     background: '#FFFFFF',
     surface: '#F5F5F5',
     text: '#1A1A1A',

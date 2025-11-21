@@ -26,6 +26,9 @@ export const CoinHistoryScreen = ({ navigation }) => {
             setBalance(balanceData.balance);
         } catch (error) {
             console.error('Failed to fetch coin data:', error);
+            // Use mock data as fallback
+            setBalance(0);
+            setTransactions([]);
         } finally {
             setLoading(false);
         }

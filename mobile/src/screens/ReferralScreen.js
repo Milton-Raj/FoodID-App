@@ -9,6 +9,7 @@ import {
     Alert,
     ActivityIndicator,
     Platform,
+    KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Users, Phone, Send } from 'lucide-react-native';
@@ -130,105 +131,112 @@ export const ReferralScreen = ({ navigation }) => {
                 <View style={{ width: 40 }} />
             </View>
 
-            {/* Referral Stats */}
-            {referralStats && (
-                <View style={styles.statsCard}>
-                    <Text style={styles.statsTitle}>Your Referrals</Text>
-                    <View style={styles.statsRow}>
-                        <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{referralStats.total_referrals}</Text>
-                            <Text style={styles.statLabel}>Total</Text>
-                        </View>
-                        <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{referralStats.pending}</Text>
-                            <Text style={styles.statLabel}>Pending</Text>
-                        </View>
-                        <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{referralStats.registered}</Text>
-                            <Text style={styles.statLabel}>Joined</Text>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            >
+                {/* Referral Stats */}
+                {referralStats && (
+                    <View style={styles.statsCard}>
+                        <Text style={styles.statsTitle}>Your Referrals</Text>
+                        <View style={styles.statsRow}>
+                            <View style={styles.statItem}>
+                                <Text style={styles.statValue}>{referralStats.total_referrals}</Text>
+                                <Text style={styles.statLabel}>Total</Text>
+                            </View>
+                            <View style={styles.statItem}>
+                                <Text style={styles.statValue}>{referralStats.pending}</Text>
+                                <Text style={styles.statLabel}>Pending</Text>
+                            </View>
+                            <View style={styles.statItem}>
+                                <Text style={styles.statValue}>{referralStats.registered}</Text>
+                                <Text style={styles.statLabel}>Joined</Text>
+                            </View>
                         </View>
                     </View>
+                )}
+
+                {/* Mode Selector */}
+                <View style={styles.modeSelector}>
+                    <TouchableOpacity
+                        style={[styles.modeButton, mode === 'select' && styles.modeButtonActive]}
+                        onPress={() => setMode('select')}
+                    >
+                        <Users size={20} color={mode === 'select' ? colors.white : colors.primary} />
+                        <Text style={[styles.modeButtonText, mode === 'select' && styles.modeButtonTextActive]}>
+                            From Contacts
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.modeButton, mode === 'manual' && styles.modeButtonActive]}
+                        onPress={() => setMode('manual')}
+                    >
+                        <Phone size={20} color={mode === 'manual' ? colors.white : colors.primary} />
+                        <Text style={[styles.modeButtonText, mode === 'manual' && styles.modeButtonTextActive]}>
+                            Manual Entry
+                        </Text>
+                    </TouchableOpacity>
                 </View>
-            )}
 
-            {/* Mode Selector */}
-            <View style={styles.modeSelector}>
-                <TouchableOpacity
-                    style={[styles.modeButton, mode === 'select' && styles.modeButtonActive]}
-                    onPress={() => setMode('select')}
-                >
-                    <Users size={20} color={mode === 'select' ? colors.white : colors.primary} />
-                    <Text style={[styles.modeButtonText, mode === 'select' && styles.modeButtonTextActive]}>
-                        From Contacts
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.modeButton, mode === 'manual' && styles.modeButtonActive]}
-                    onPress={() => setMode('manual')}
-                >
-                    <Phone size={20} color={mode === 'manual' ? colors.white : colors.primary} />
-                    <Text style={[styles.modeButtonText, mode === 'manual' && styles.modeButtonTextActive]}>
-                        Manual Entry
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            {mode === 'select' ? (
-                <>
-                    {contacts.length === 0 ? (
-                        <View style={styles.emptyState}>
-                            <Users size={64} color={colors.textSecondary} />
-                            <Text style={styles.emptyText}>No contacts loaded</Text>
-                            <Button
-                                title="Load Contacts"
-                                onPress={requestContactsPermission}
-                                style={styles.loadButton}
-                            />
-                        </View>
-                    ) : (
-                        <>
-                            <View style={styles.searchContainer}>
-                                <TextInput
-                                    style={styles.searchInput}
-                                    placeholder="Search contacts..."
-                                    value={searchQuery}
-                                    onChangeText={setSearchQuery}
-                                    placeholderTextColor={colors.textSecondary}
+                {mode === 'select' ? (
+                    <>
+                        {contacts.length === 0 ? (
+                            <View style={styles.emptyState}>
+                                <Users size={64} color={colors.textSecondary} />
+                                <Text style={styles.emptyText}>No contacts loaded</Text>
+                                <Button
+                                    title="Load Contacts"
+                                    onPress={requestContactsPermission}
+                                    style={styles.loadButton}
                                 />
                             </View>
-                            <ContactPicker
-                                contacts={contacts}
-                                selectedContacts={selectedContacts}
-                                onToggleContact={handleToggleContact}
-                                searchQuery={searchQuery}
-                            />
-                        </>
-                    )}
-                </>
-            ) : (
-                <View style={styles.manualContainer}>
-                    <Text style={styles.manualTitle}>Enter Phone Number</Text>
-                    <TextInput
-                        style={styles.manualInput}
-                        placeholder="Enter 10-digit phone number"
-                        keyboardType="phone-pad"
-                        value={manualPhone}
-                        onChangeText={setManualPhone}
-                        maxLength={15}
-                        placeholderTextColor={colors.textSecondary}
+                        ) : (
+                            <>
+                                <View style={styles.searchContainer}>
+                                    <TextInput
+                                        style={styles.searchInput}
+                                        placeholder="Search contacts..."
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                        placeholderTextColor={colors.textSecondary}
+                                    />
+                                </View>
+                                <ContactPicker
+                                    contacts={contacts}
+                                    selectedContacts={selectedContacts}
+                                    onToggleContact={handleToggleContact}
+                                    searchQuery={searchQuery}
+                                />
+                            </>
+                        )}
+                    </>
+                ) : (
+                    <ScrollView style={styles.manualContainer} keyboardShouldPersistTaps="handled">
+                        <Text style={styles.manualTitle}>Enter Phone Number</Text>
+                        <TextInput
+                            style={styles.manualInput}
+                            placeholder="Enter 10-digit phone number"
+                            keyboardType="phone-pad"
+                            value={manualPhone}
+                            onChangeText={setManualPhone}
+                            maxLength={15}
+                            placeholderTextColor={colors.textSecondary}
+                            returnKeyType="done"
+                        />
+                    </ScrollView>
+                )}
+
+                {/* Send Button */}
+                <View style={styles.footer}>
+                    <Button
+                        title={sending ? 'Sending...' : `Send Referral${mode === 'select' && selectedContacts.length > 1 ? 's' : ''}`}
+                        onPress={handleSendReferrals}
+                        disabled={sending || (mode === 'select' && selectedContacts.length === 0)}
+                        icon={<Send size={20} color={colors.white} />}
                     />
                 </View>
-            )}
-
-            {/* Send Button */}
-            <View style={styles.footer}>
-                <Button
-                    title={sending ? 'Sending...' : `Send Referral${mode === 'select' && selectedContacts.length > 1 ? 's' : ''}`}
-                    onPress={handleSendReferrals}
-                    disabled={sending || (mode === 'select' && selectedContacts.length === 0)}
-                    icon={<Send size={20} color={colors.white} />}
-                />
-            </View>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };

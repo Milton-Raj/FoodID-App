@@ -103,10 +103,10 @@ export const ResultsScreen = ({ route, navigation }) => {
                     {/* Nutrition Grid */}
                     <Text style={styles.sectionTitle}>Nutrition Facts</Text>
                     <View style={styles.nutritionGrid}>
-                        <NutritionCard label="Calories" value={mockData.calories} unit=" kcal" />
-                        <NutritionCard label="Protein" value={mockData.macros.protein} color={colors.primary} />
-                        <NutritionCard label="Carbs" value={mockData.macros.carbs} color={colors.warning} />
-                        <NutritionCard label="Fat" value={mockData.macros.fat} color={colors.error} />
+                        <NutritionCard label="Calories" value={mockData.calories || 0} unit=" kcal" />
+                        <NutritionCard label="Protein" value={mockData.protein || 0} color={colors.primary} />
+                        <NutritionCard label="Carbs" value={mockData.carbs || 0} color={colors.warning} />
+                        <NutritionCard label="Fat" value={mockData.fat || 0} color={colors.error} />
                     </View>
 
                     {/* Ingredients */}

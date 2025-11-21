@@ -192,15 +192,16 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingHorizontal: 24,
+        alignItems: 'center',
+        paddingHorizontal: 20,
         paddingTop: 16,
-        paddingBottom: 24,
+        paddingBottom: 20,
     },
     headerActions: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: 8,
+        flexShrink: 0,
     },
     profileButton: {
         width: 40,
