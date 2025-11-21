@@ -19,9 +19,11 @@ export const NotificationsScreen = ({ navigation }) => {
         try {
             setLoading(true);
             const data = await api.getNotifications(1);
-            setNotifications(data);
+            setNotifications(data || []);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
+            // Show empty state on error
+            setNotifications([]);
         } finally {
             setLoading(false);
             setRefreshing(false);

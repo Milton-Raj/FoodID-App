@@ -37,9 +37,11 @@ export const HomeScreen = ({ navigation }) => {
     const fetchCoinBalance = async () => {
         try {
             const data = await api.getCoinBalance(1);
-            setCoins(data.balance);
+            setCoins(data.balance || 0);
         } catch (error) {
             console.error('Failed to fetch coin balance:', error);
+            // Set to 0 on error
+            setCoins(0);
         }
     };
 
@@ -78,7 +80,7 @@ export const HomeScreen = ({ navigation }) => {
             <ScrollView style={styles.content}>
                 {/* Header with Profile, Coins, and Notifications */}
                 <View style={styles.header}>
-                    <View>
+                    <View style={styles.titleContainer}>
                         <Text style={styles.title}>FoodID 🍽️</Text>
                         <Text style={styles.subtitle}>Scan your food, know what you eat</Text>
                     </View>
@@ -86,10 +88,10 @@ export const HomeScreen = ({ navigation }) => {
                         <CoinBadge coins={coins} onPress={() => navigation.navigate('CoinHistory')} />
                         <NotificationButton
                             onPress={() => navigation.navigate('Notifications')}
-                            unreadCount={1}
+                            unreadCount={0}
                         />
                         <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.profileButton}>
-                            <User size={24} color={colors.primary} />
+                            <User size={20} color={colors.primary} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -192,21 +194,25 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 16,
-        paddingBottom: 20,
+        alignItems: 'flex-start',
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        paddingBottom: 16,
+    },
+    titleContainer: {
+        flex: 1,
+        marginRight: 8,
     },
     headerActions: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 6,
         flexShrink: 0,
     },
     profileButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         backgroundColor: colors.surface,
         justifyContent: 'center',
         alignItems: 'center',

@@ -22,11 +22,11 @@ export const CoinHistoryScreen = ({ navigation }) => {
                 api.getCoinHistory(1),
                 api.getCoinBalance(1),
             ]);
-            setTransactions(historyData);
-            setBalance(balanceData.balance);
+            setTransactions(historyData || []);
+            setBalance(balanceData?.balance || 0);
         } catch (error) {
             console.error('Failed to fetch coin data:', error);
-            // Use mock data as fallback
+            // Use empty data as fallback
             setBalance(0);
             setTransactions([]);
         } finally {
