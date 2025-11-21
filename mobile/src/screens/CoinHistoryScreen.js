@@ -20,9 +20,9 @@ export const CoinHistoryScreen = ({ navigation }) => {
         try {
             setLoading(true);
 
-            // Add timeout to prevent hanging
+            // Reduced timeout for faster UX
             const timeout = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Request timeout')), 5000)
+                setTimeout(() => reject(new Error('Request timeout')), 3000)
             );
 
             const dataPromise = Promise.all([

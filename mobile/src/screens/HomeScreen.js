@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/Button';
 import { NotificationButton } from '../components/NotificationButton';
 import { CoinBadge } from '../components/CoinBadge';
+import { FadeInView } from '../components/FadeInView';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';

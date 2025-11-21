@@ -8,13 +8,13 @@ import {
     TouchableOpacity,
     Alert,
     ActivityIndicator,
+    Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Camera, Mail, Phone, User } from 'lucide-react-native';
+import { ArrowLeft, Camera, Edit2, Save } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { ProfileAvatar } from '../components/ProfileAvatar';
-import { CoinBadge } from '../components/CoinBadge';
 import { Button } from '../components/Button';
+import { SkeletonLoader } from '../components/SkeletonLoader';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';
@@ -39,9 +39,9 @@ export const ProfileScreen = ({ navigation }) => {
         try {
             setLoading(true);
 
-            // Add timeout to prevent hanging
+            // Reduced timeout for faster UX
             const timeout = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Request timeout')), 5000)
+                setTimeout(() => reject(new Error('Request timeout')), 3000)
             );
 
             const dataPromise = api.getProfile(1);

@@ -95,26 +95,24 @@ export const ResultsScreen = ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            {/* Header with Back and Retake buttons */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={handleBackPress} style={styles.headerButton}>
-                    <ArrowLeft size={24} color={colors.white} />
-                    <Text style={styles.headerButtonText}>Back</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleRetakePress} style={styles.headerButton}>
-                    <Camera size={24} color={colors.white} />
-                    <Text style={styles.headerButtonText}>Retake</Text>
-                </TouchableOpacity>
-            </View>
-
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {/* Image Header */}
+                {/* Image Header with Floating Buttons */}
                 <View style={styles.imageContainer}>
                     {photoUri ? (
                         <Image source={{ uri: photoUri }} style={styles.image} />
                     ) : (
                         <View style={[styles.image, { backgroundColor: colors.surface }]} />
                     )}
+
+                    {/* Floating Header Buttons */}
+                    <View style={styles.floatingHeader}>
+                        <TouchableOpacity onPress={handleBackPress} style={styles.floatingButton}>
+                            <ArrowLeft size={20} color={colors.white} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={handleRetakePress} style={styles.floatingButton}>
+                            <Camera size={20} color={colors.white} />
+                        </TouchableOpacity>
+                    </View>
                     <View style={styles.confidenceBadge}>
                         <CheckCircle size={16} color={colors.white} />
                         <Text style={styles.confidenceText}>{mockData.confidence}% Match</Text>
@@ -189,33 +187,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
     },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: colors.primary,
-    },
-    headerButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-    },
-    headerButtonText: {
-        color: colors.white,
-        fontSize: 14,
-        fontWeight: '600',
-    },
     scrollContent: {
         flexGrow: 1,
     },
     imageContainer: {
-        height: 300,
+        height: 350,
         width: '100%',
         position: 'relative',
     },
@@ -223,6 +199,28 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
+    },
+    floatingHeader: {
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        right: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        zIndex: 10,
+    },
+    floatingButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
     },
     confidenceBadge: {
         position: 'absolute',
