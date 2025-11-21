@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, Upload } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/Button';
+import { NotificationButton } from '../components/NotificationButton';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';
@@ -60,10 +61,17 @@ export const HomeScreen = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView>
+            <ScrollView style={styles.content}>
+                {/* Header with Notification Button */}
                 <View style={styles.header}>
-                    <Text style={styles.greeting}>Hello, Foodie! 👋</Text>
-                    <Text style={styles.subtitle}>What are you eating today?</Text>
+                    <View>
+                        <Text style={styles.title}>FoodID 🍽️</Text>
+                        <Text style={styles.subtitle}>Scan your food, know what you eat</Text>
+                    </View>
+                    <NotificationButton
+                        onPress={() => navigation.navigate('Notifications')}
+                        unreadCount={1}
+                    />
                 </View>
 
                 <View style={styles.actionContainer}>

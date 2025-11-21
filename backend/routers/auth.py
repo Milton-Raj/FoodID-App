@@ -1,67 +1,41 @@
-from datetime import datetime, timedelta
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
-from jose import jwt
-from passlib.context import CryptContext
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from database import get_db
-from models import User
+from services.otp_service import create_otp, verify_otp
 
-# Configuration
-SECRET_KEY = "YOUR_SECRET_KEY" # In production, use env variable
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Router
 router = APIRouter()
 
 # Pydantic Models
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+class PhoneRequest(BaseModel):
+    phone_number: str
 
-class UserCreate(BaseModel):
-    email: str
-    password: str
+class OTPVerifyRequest(BaseModel):
+    phone_number: str
+    otp_code: str
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-@router.post("/register", response_model=Token)
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+@router.post("/send-otp")
+def send_otp(request: PhoneRequest):
+    """Send OTP to phone number (Mock SMS)"""
+    result = create_otp(request.phone_number)
     
-    hashed_password = pwd_context.hash(user.password)
-    new_user = User(email=user.email, hashed_password=hashed_password)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    if not result.get('success'):
+        raise HTTPException(status_code=400, detail=result.get('error', 'Failed to send OTP'))
     
-    access_token = create_access_token(data={"sub": new_user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        'success': True,
+        'message': result['message'],
+        'otp_code': result['otp_code']  # Only for testing - remove in production
+    }
 
-@router.post("/token", response_model=Token)
-def login(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+@router.post("/verify-otp")
+def verify_otp_endpoint(request: OTPVerifyRequest):
+    """Verify OTP and login user"""
+    result = verify_otp(request.phone_number, request.otp_code)
     
-    access_token = create_access_token(data={"sub": db_user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    if not result.get('success'):
+        raise HTTPException(status_code=400, detail=result.get('error', 'Invalid OTP'))
+    
+    return {
+        'success': True,
+        'user': result['user'],
+        'message': result['message']
+    }
