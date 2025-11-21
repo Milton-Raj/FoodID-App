@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 // Use localhost for iOS simulator, 10.0.2.2 for Android emulator
 // For physical device, use your computer's IP address
-const DEV_API_URL = 'https://curly-meals-teach.loca.lt';
+const DEV_API_URL = 'https://full-hats-laugh.loca.lt';
 
 export const api = {
     analyzeFood: async (photoUri) => {
