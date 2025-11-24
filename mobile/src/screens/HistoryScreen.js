@@ -8,11 +8,10 @@ import { API_URL } from '../config';
 import { api } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
 export const HistoryScreen = ({ navigation }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    import { useFocusEffect } from '@react-navigation/native';
 
     useFocusEffect(
         React.useCallback(() => {

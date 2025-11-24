@@ -24,10 +24,10 @@ export const HomeScreen = ({ navigation }) => {
     useFocusEffect(
         React.useCallback(() => {
             loadUserData();
-        }, [])
+        }, [loadUserData])
     );
 
-    const loadUserData = async () => {
+    const loadUserData = React.useCallback(async () => {
         try {
             const userStr = await AsyncStorage.getItem('user');
             if (userStr) {
@@ -38,7 +38,7 @@ export const HomeScreen = ({ navigation }) => {
         } catch (error) {
             console.error('Failed to load user data:', error);
         }
-    };
+    }, []);
 
     const fetchRecentScans = async (userId) => {
         try {

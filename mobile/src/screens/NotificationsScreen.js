@@ -15,9 +15,9 @@ export const NotificationsScreen = ({ navigation }) => {
 
     useEffect(() => {
         loadUserData();
-    }, []);
+    }, [loadUserData]);
 
-    const loadUserData = async () => {
+    const loadUserData = React.useCallback(async () => {
         try {
             const userStr = await AsyncStorage.getItem('user');
             if (userStr) {
@@ -27,7 +27,7 @@ export const NotificationsScreen = ({ navigation }) => {
         } catch (error) {
             console.error('Failed to load user data:', error);
         }
-    };
+    }, []);
 
     const fetchNotifications = async (userId) => {
         try {
