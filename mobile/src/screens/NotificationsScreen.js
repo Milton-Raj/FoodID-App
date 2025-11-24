@@ -38,6 +38,7 @@ export const NotificationsScreen = ({ navigation }) => {
             console.error('Failed to fetch notifications:', error);
             // Show empty state on error
             setNotifications([]);
+            // Optional: Show toast or silent fail
         } finally {
             setLoading(false);
             setRefreshing(false);

@@ -15,6 +15,7 @@ import { ArrowLeft, Camera, Edit2, Save } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/Button';
 import { SkeletonLoader } from '../components/SkeletonLoader';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { api } from '../services/api';

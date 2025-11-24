@@ -39,11 +39,11 @@ export const HistoryScreen = ({ navigation }) => {
                     confidence: item.confidence,
                     ...item.nutrition_data
                 },
-                imageUri: item.image_path.startsWith('http') ? item.image_path : `${API_URL}/static/${item.image_path.split('/').pop()}`
+                imageUri: item.image_path ? (item.image_path.startsWith('http') ? item.image_path : `${API_URL}/static/${item.image_path.split('/').pop()}`) : null
             })}
         >
             <Image
-                source={{ uri: item.image_path.startsWith('http') ? item.image_path : `${API_URL}/static/${item.image_path.split('/').pop()}` }}
+                source={{ uri: item.image_path ? (item.image_path.startsWith('http') ? item.image_path : `${API_URL}/static/${item.image_path.split('/').pop()}`) : 'https://via.placeholder.com/100' }}
                 style={styles.foodImage}
             />
             <View style={styles.cardContent}>

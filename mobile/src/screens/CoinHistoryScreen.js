@@ -47,7 +47,9 @@ export const CoinHistoryScreen = ({ navigation }) => {
 
             const [historyData, balanceData] = await Promise.race([dataPromise, timeout]);
             setTransactions(historyData || []);
-            setBalance(balanceData?.balance || 0);
+            // Handle different response formats (some APIs return { balance: 100 }, others just 100)
+            const balanceValue = typeof balanceData === 'object' ? balanceData?.balance : balanceData;
+            setBalance(balanceValue || 0);
         } catch (error) {
             console.error('Failed to fetch coin data:', error);
             // Use empty data as fallback

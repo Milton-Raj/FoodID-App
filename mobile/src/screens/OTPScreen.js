@@ -51,7 +51,14 @@ export const OTPScreen = ({ route, navigation }) => {
         setLoading(true);
         try {
             // Use real API to verify OTP and create user in database
-            const data = await api.verifyOTP(phoneNumber, otpString || otp.join(''));
+            const timeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Request timed out. Please check your connection.')), 10000)
+            );
+
+            const data = await Promise.race([
+                api.verifyOTP(phoneNumber, otpString || otp.join('')),
+                timeout
+            ]);
 
             if (data.success) {
                 // Save user data (user will have database ID)

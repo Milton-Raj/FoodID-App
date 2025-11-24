@@ -3,7 +3,11 @@
 // For Android Emulator use 'http://10.0.2.2:8000'
 // For iOS Simulator use 'http://localhost:8000'
 
-export const API_URL = 'http://192.168.225.120:8000';
+// For Android Emulator use 'http://10.0.2.2:8000'
+// For iOS Simulator use 'http://localhost:8000'
+// For Physical Device use your machine's IP address (e.g. 'http://192.168.1.5:8000')
+
+export const API_URL = 'http://localhost:8000';
 
 // Mock function to simulate sending OTP
 export const mockSendOTP = (phoneNumber) => {

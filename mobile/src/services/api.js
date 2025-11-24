@@ -21,11 +21,33 @@ const getCurrentUserId = async () => {
     }
 };
 
+// Helper for fetch with timeout
+const fetchWithTimeout = async (url, options = {}) => {
+    const { timeout = 10000 } = options; // 10s timeout
+
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    try {
+        console.log(`API Request: ${url}`);
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        console.error(`API Request Failed: ${url}`, error);
+        throw error;
+    }
+};
+
 export const api = {
     // Authentication APIs
     sendOTP: async (phoneNumber) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/auth/send-otp`, {
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/auth/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone_number: phoneNumber }),
@@ -43,7 +65,7 @@ export const api = {
 
     verifyOTP: async (phoneNumber, otpCode) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/auth/verify-otp`, {
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/auth/verify-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone_number: phoneNumber, otp_code: otpCode }),
@@ -67,7 +89,7 @@ export const api = {
                 name: 'food.jpg',
             });
 
-            const response = await fetch(`${DEV_API_URL}/api/scan/analyze?user_id=${userId}`, {
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/scan/analyze?user_id=${userId}`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -87,7 +109,7 @@ export const api = {
 
     getRecentScans: async (userId = 1, limit = 10) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/scan/recent?user_id=${userId}&limit=${limit}`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/scan/recent?user_id=${userId}&limit=${limit}`);
             const data = await response.json();
             if (!response.ok) {
                 throw new Error(data.detail || 'Failed to fetch recent scans');
@@ -102,7 +124,7 @@ export const api = {
     // Profile APIs
     getProfile: async (userId = 1) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/profile/${userId}`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/profile/${userId}`);
             return await response.json();
         } catch (error) {
             console.error('Get Profile Error:', error);
@@ -112,7 +134,7 @@ export const api = {
 
     updateProfile: async (userId = 1, profileData) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/profile/${userId}`, {
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/profile/${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(profileData),
@@ -133,7 +155,7 @@ export const api = {
                 name: 'profile.jpg',
             });
 
-            const response = await fetch(`${DEV_API_URL}/api/profile/upload-image?user_id=${userId}`, {
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/profile/upload-image?user_id=${userId}`, {
                 method: 'POST',
                 body: formData,
                 headers: { 'Content-Type': 'multipart/form-data' },
@@ -148,7 +170,7 @@ export const api = {
     // Notification APIs
     getNotifications: async (userId = 1, limit = 50) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/notifications/${userId}?limit=${limit}`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/notifications/${userId}?limit=${limit}`);
             return await response.json();
         } catch (error) {
             console.error('Get Notifications Error:', error);
@@ -158,7 +180,7 @@ export const api = {
 
     getNotificationDetail: async (notificationId) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/notifications/detail/${notificationId}`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/notifications/detail/${notificationId}`);
             return await response.json();
         } catch (error) {
             console.error('Get Notification Detail Error:', error);
@@ -168,7 +190,7 @@ export const api = {
 
     markNotificationRead: async (notificationId) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/notifications/${notificationId}/read`, {
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/notifications/${notificationId}/read`, {
                 method: 'PATCH',
             });
             return await response.json();
@@ -180,7 +202,7 @@ export const api = {
 
     getUnreadCount: async (userId = 1) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/notifications/${userId}/unread-count`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/notifications/${userId}/unread-count`);
             return await response.json();
         } catch (error) {
             console.error('Get Unread Count Error:', error);
@@ -191,7 +213,7 @@ export const api = {
     // Referral APIs
     sendReferrals: async (userId = 1, phoneNumbers) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/referrals/send`, {
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/referrals/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId, phone_numbers: phoneNumbers }),
@@ -205,7 +227,7 @@ export const api = {
 
     getReferrals: async (userId = 1) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/referrals/${userId}`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/referrals/${userId}`);
             return await response.json();
         } catch (error) {
             console.error('Get Referrals Error:', error);
@@ -215,7 +237,7 @@ export const api = {
 
     getReferralStats: async (userId = 1) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/referrals/${userId}/stats`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/referrals/${userId}/stats`);
             return await response.json();
         } catch (error) {
             console.error('Get Referral Stats Error:', error);
@@ -226,7 +248,7 @@ export const api = {
     // Coin APIs
     getCoinBalance: async (userId = 1) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/coins/${userId}/balance`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/coins/${userId}/balance`);
             return await response.json();
         } catch (error) {
             console.error('Get Coin Balance Error:', error);
@@ -236,7 +258,7 @@ export const api = {
 
     getCoinHistory: async (userId = 1, limit = 50) => {
         try {
-            const response = await fetch(`${DEV_API_URL}/api/coins/${userId}/history?limit=${limit}`);
+            const response = await fetchWithTimeout(`${DEV_API_URL}/api/coins/${userId}/history?limit=${limit}`);
             return await response.json();
         } catch (error) {
             console.error('Get Coin History Error:', error);

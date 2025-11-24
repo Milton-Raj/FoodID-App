@@ -19,7 +19,12 @@ export const LoginScreen = ({ navigation }) => {
         setLoading(true);
         try {
             // Use real API to send OTP
-            const data = await api.sendOTP(phoneNumber);
+            // Add a timeout race to prevent hanging
+            const timeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Request timed out. Please check your connection.')), 10000)
+            );
+
+            const data = await Promise.race([api.sendOTP(phoneNumber), timeout]);
             console.log('OTP sent, response:', data);
             // Navigate to OTP screen (OTP code may be returned for testing)
             navigation.navigate('OTP', {
