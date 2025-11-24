@@ -102,8 +102,10 @@ export const api = {
             }
             return data;
         } catch (error) {
-            console.warn('Analyze Food Error (falling back to mock):', error);
-            return await mockAnalyzeFood(photoUri);
+            console.error('Analyze Food Error:', error);
+            // Throw error to let UI handle it, or at least log it visibly
+            throw error;
+            // return await mockAnalyzeFood(photoUri);
         }
     },
 
@@ -116,8 +118,9 @@ export const api = {
             }
             return data;
         } catch (error) {
-            console.warn('Get Recent Scans Error (falling back to mock):', error);
-            return await mockGetRecentScans(userId);
+            console.error('Get Recent Scans Error:', error);
+            throw error;
+            // return await mockGetRecentScans(userId);
         }
     },
 
