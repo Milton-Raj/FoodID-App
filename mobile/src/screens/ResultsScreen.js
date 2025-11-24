@@ -53,10 +53,9 @@ export const ResultsScreen = ({ route, navigation }) => {
                 const result = await api.analyzeFood(photoUri, userId);
                 console.log('Analysis result:', result);
                 setData(result);
-            } catch (err) {
-                console.error('Analysis error:', err);
-                console.error('Error details:', err.message, err.stack);
-                setError('Failed to analyze food. Please try again.');
+            } catch (error) {
+                console.error('Analysis failed:', error);
+                setError(error.message || 'Failed to analyze food. Please try again.');
             } finally {
                 setLoading(false);
             }
