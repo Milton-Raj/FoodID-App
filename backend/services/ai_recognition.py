@@ -11,7 +11,7 @@ CLARIFAI_USER_ID = 'clarifai'
 CLARIFAI_APP_ID = 'main'
 CLARIFAI_MODEL_ID = 'food-item-recognition'
 CLARIFAI_MODEL_VERSION_ID = 'dfebc169854e429086aceb8368662641'
-CLARIFAI_TIMEOUT = 10  # 10 second timeout
+CLARIFAI_TIMEOUT = 5  # 5 second timeout
 
 def analyze_image_colors(image_path: str) -> str:
     """Analyze image colors to make educated guess about food type"""

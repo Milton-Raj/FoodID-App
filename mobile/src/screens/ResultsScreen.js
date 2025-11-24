@@ -100,9 +100,9 @@ export const ResultsScreen = ({ route, navigation }) => {
         confidence: data.confidence || 0,
         healthScore: data.healthScore || 0,
         calories: data.calories || 0,
-        protein: data.protein || 0,
-        carbs: data.carbs || 0,
-        fat: data.fat || 0,
+        protein: data.macros?.protein || data.protein || 0,
+        carbs: data.macros?.carbs || data.carbs || 0,
+        fat: data.macros?.fat || data.fat || 0,
         ingredients: data.ingredients || [],
         history: data.history || null,
     };

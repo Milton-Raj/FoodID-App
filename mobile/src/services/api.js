@@ -23,7 +23,7 @@ const getCurrentUserId = async () => {
 
 // Helper for fetch with timeout
 const fetchWithTimeout = async (url, options = {}) => {
-    const { timeout = 10000 } = options; // 10s timeout
+    const { timeout = 20000 } = options; // 20s timeout
 
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
