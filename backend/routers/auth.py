@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from services.otp_service import create_otp, verify_otp
-from services.supabase_client import create_user, get_user_by_phone
+from backend.services.otp_service import create_otp, verify_otp
+from backend.services.supabase_client import create_user, get_user_by_phone
 
 router = APIRouter()
 

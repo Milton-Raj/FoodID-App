@@ -4,7 +4,7 @@ from typing import Optional
 import os
 import shutil
 from datetime import datetime
-from services.supabase_client import get_user_by_id, update_user_profile
+from backend.services.supabase_client import get_user_by_id, update_user_profile
 
 router = APIRouter()
 

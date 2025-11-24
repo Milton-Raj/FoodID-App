@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
-from services.supabase_client import (
+from backend.services.supabase_client import (
     get_user_by_id,
     get_user_coin_history,
     create_coin_transaction,

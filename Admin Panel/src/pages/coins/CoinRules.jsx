@@ -59,10 +59,12 @@ const CoinRules = () => {
 
     const handleSaveRule = async () => {
         try {
+            // Ensure coin_amount is an integer
+            const payload = { ...formData, coin_amount: parseInt(formData.coin_amount, 10) };
             if (editingRule) {
-                await updateCoinRule(editingRule.id, formData);
+                await updateCoinRule(editingRule.id, payload);
             } else {
-                await createCoinRule(formData);
+                await createCoinRule(payload);
             }
             setShowModal(false);
             fetchRules();
@@ -128,8 +130,8 @@ const CoinRules = () => {
                 <button
                     onClick={() => setActiveTab('earning')}
                     className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'earning'
-                            ? 'bg-green-600 text-white shadow-lg'
-                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                        ? 'bg-green-600 text-white shadow-lg'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                 >
                     Earning Rules ({rules.earning_rules.length})
@@ -137,8 +139,8 @@ const CoinRules = () => {
                 <button
                     onClick={() => setActiveTab('spending')}
                     className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'spending'
-                            ? 'bg-red-600 text-white shadow-lg'
-                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white shadow-lg'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                 >
                     Spending Rules ({rules.spending_rules.length})
@@ -186,8 +188,8 @@ const CoinRules = () => {
                                             <button
                                                 onClick={() => handleToggleRule(rule.id)}
                                                 className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${rule.is_active
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-gray-100 text-gray-600'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-gray-100 text-gray-600'
                                                     }`}
                                             >
                                                 {rule.is_active ? <Power size={14} /> : <PowerOff size={14} />}

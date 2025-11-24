@@ -1,104 +1,144 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional, List
 from datetime import datetime
-from services.supabase_client import (
-    get_user_notifications,
-    get_user_by_id,
-    mark_notification_read as mark_read_in_db,
-    create_notification
-)
+from backend.services.supabase_client import get_supabase_client
 
-router = APIRouter()
+router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
-# Pydantic Models
-class NotificationResponse(BaseModel):
-    id: int
-    user_id: int
+class NotificationCreate(BaseModel):
     title: str
     message: str
-    notification_type: str
-    extra_data: Optional[dict]
-    read: bool
-    created_at: str
+    target_audience: str = "all"
+    priority: str = "normal"
+    send_now: bool = True
+    scheduled_for: Optional[datetime] = None
 
-@router.get("/notifications/{user_id}")
-async def get_notifications(user_id: int, limit: int = 50):
-    """Get all notifications for a user from Supabase"""
-    # Verify user exists
-    user = get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Get notifications from Supabase
-    notifications = get_user_notifications(user_id, limit)
-    return notifications
+class ScheduledNotificationUpdate(BaseModel):
+    title: Optional[str] = None
+    message: Optional[str] = None
+    scheduled_for: Optional[datetime] = None
+    status: Optional[str] = None
 
-@router.get("/notifications/detail/{notification_id}")
-async def get_notification_detail(notification_id: int):
-    """Get specific notification details from Supabase"""
-    from services.supabase_client import get_supabase_client
-    
+@router.post("/send")
+async def send_notification(notif: NotificationCreate):
+    """Send or schedule a notification"""
     try:
         supabase = get_supabase_client()
-        result = supabase.table('notifications').select('*').eq('id', notification_id).single().execute()
         
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Notification not found")
-        
-        return result.data
+        if notif.send_now:
+            # Send immediately to all users or specific audience
+            # For now, we'll create notification records for all users
+            users_response = supabase.table('users').select('id').execute()
+            
+            notifications_to_create = []
+            for user in users_response.data:
+                notifications_to_create.append({
+                    'user_id': user['id'],
+                    'title': notif.title,
+                    'message': notif.message,
+                    'notification_type': notif.priority,
+                    'read': False
+                })
+            
+            if notifications_to_create:
+                supabase.table('notifications').insert(notifications_to_create).execute()
+            
+            return {
+                "message": "Notification sent successfully",
+                "recipients": len(notifications_to_create)
+            }
+        else:
+            # Schedule for later
+            if not notif.scheduled_for:
+                raise HTTPException(status_code=400, detail="scheduled_for is required when send_now is False")
+            
+            scheduled_data = {
+                'title': notif.title,
+                'message': notif.message,
+                'target_audience': notif.target_audience,
+                'priority': notif.priority,
+                'scheduled_for': notif.scheduled_for.isoformat(),
+                'status': 'pending'
+            }
+            
+            response = supabase.table('scheduled_notifications').insert(scheduled_data).execute()
+            
+            return {
+                "message": "Notification scheduled successfully",
+                "scheduled_notification": response.data[0] if response.data else None
+            }
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error fetching notification: {e}")
-        raise HTTPException(status_code=404, detail="Notification not found")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.patch("/notifications/{notification_id}/read")
-async def mark_notification_read(notification_id: int):
-    """Mark notification as read in Supabase"""
-    success = mark_read_in_db(notification_id)
-    
-    if not success:
-        raise HTTPException(status_code=404, detail="Notification not found")
-    
-    return {
-        "success": True,
-        "message": "Notification marked as read"
-    }
-
-@router.get("/notifications/{user_id}/unread-count")
-async def get_unread_count(user_id: int):
-    """Get count of unread notifications from Supabase"""
-    from services.supabase_client import get_supabase_client
-    
+@router.get("/scheduled")
+async def get_scheduled_notifications():
+    """Get all scheduled notifications"""
     try:
         supabase = get_supabase_client()
-        result = supabase.table('notifications')\
-            .select('id', count='exact')\
-            .eq('user_id', user_id)\
-            .eq('read', False)\
+        response = supabase.table('scheduled_notifications').select('*').order('scheduled_for', desc=False).execute()
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/scheduled/{notification_id}")
+async def update_scheduled_notification(notification_id: int, update: ScheduledNotificationUpdate):
+    """Update a scheduled notification"""
+    try:
+        supabase = get_supabase_client()
+        
+        update_data = {k: v.isoformat() if isinstance(v, datetime) else v 
+                      for k, v in update.dict().items() if v is not None}
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No data to update")
+        
+        response = supabase.table('scheduled_notifications').update(update_data).eq('id', notification_id).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Scheduled notification not found")
+        
+        return {
+            "message": "Scheduled notification updated successfully",
+            "notification": response.data[0]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/scheduled/{notification_id}")
+async def delete_scheduled_notification(notification_id: int):
+    """Delete a scheduled notification"""
+    try:
+        supabase = get_supabase_client()
+        response = supabase.table('scheduled_notifications').delete().eq('id', notification_id).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Scheduled notification not found")
+        
+        return {"message": "Scheduled notification deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/history")
+async def get_notification_history(limit: int = 100):
+    """Get notification history"""
+    try:
+        supabase = get_supabase_client()
+        
+        # Get sent scheduled notifications
+        response = supabase.table('scheduled_notifications')\
+            .select('*')\
+            .eq('status', 'sent')\
+            .order('sent_at', desc=True)\
+            .limit(limit)\
             .execute()
         
-        return {
-            "user_id": user_id,
-            "unread_count": result.count or 0
-        }
+        return response.data
     except Exception as e:
-        print(f"Error getting unread count: {e}")
-        return {
-            "user_id": user_id,
-            "unread_count": 0
-        }
-
-# -------------------------------------------------
-# Create Notification Endpoint
-# -------------------------------------------------
-
-@router.post("/create")
-async def create_notification_endpoint(user_id: int, title: str, message: str, notification_type: str = "system", extra_data: dict = None):
-    """Create a new notification for a user."""
-    notif = create_notification(user_id, title, message, notification_type, extra_data)
-    if not notif:
-        raise HTTPException(status_code=500, detail="Failed to create notification")
-    return {
-        "success": True,
-        "notification": notif
-    }
+        raise HTTPException(status_code=500, detail=str(e))

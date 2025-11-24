@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { getUsers, deleteUser } from '../../services/api';
-import { Search, Filter, Download, UserPlus, Mail, Phone, Coins, Edit, Trash2, X, AlertTriangle } from 'lucide-react';
+import { getUsers, deleteUser, createUser } from '../../services/api';
+import { Search, Filter, Download, UserPlus, Mail, Phone, Coins, Edit, Trash2, X, AlertTriangle, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageTemplate from '../../components/PageTemplate';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,14 @@ const AllUsers = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [deleteModal, setDeleteModal] = useState({ show: false, user: null });
     const [deleting, setDeleting] = useState(false);
+    const [addUserModal, setAddUserModal] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [newUser, setNewUser] = useState({
+        phone_number: '',
+        name: '',
+        email: '',
+        coins: 0
+    });
 
     useEffect(() => {
         fetchUsers();
@@ -64,6 +72,32 @@ const AllUsers = () => {
         navigate('/users/export');
     };
 
+    const handleAddUser = () => {
+        setNewUser({ phone_number: '', name: '', email: '', coins: 0 });
+        setAddUserModal(true);
+    };
+
+    const handleCreateUser = async () => {
+        if (!newUser.phone_number) {
+            alert('Phone number is required!');
+            return;
+        }
+
+        setCreating(true);
+        try {
+            await createUser(newUser);
+            await fetchUsers(); // Refresh list
+            setAddUserModal(false);
+            setNewUser({ phone_number: '', name: '', email: '', coins: 0 });
+            alert('User created successfully!');
+        } catch (error) {
+            console.error('Failed to create user:', error);
+            alert(error.response?.data?.detail || 'Failed to create user. Please try again.');
+        } finally {
+            setCreating(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen">
@@ -78,15 +112,26 @@ const AllUsers = () => {
             description="Manage and monitor all registered users"
             icon={UserPlus}
             actions={
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleExport}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl shadow-lg"
-                >
-                    <Download size={20} />
-                    Export Users
-                </motion.button>
+                <div className="flex gap-3">
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleAddUser}
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-xl shadow-lg"
+                    >
+                        <UserPlus size={20} />
+                        Add User
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleExport}
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl shadow-lg"
+                    >
+                        <Download size={20} />
+                        Export Users
+                    </motion.button>
+                </div>
             }
         >
             {/* Search and Filters */}
@@ -167,6 +212,13 @@ const AllUsers = () => {
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleEdit(user)}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                title="View user profile"
+                                            >
+                                                <Eye size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleEdit(user)}
                                                 className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                                                 title="Edit user"
                                             >
@@ -231,6 +283,114 @@ const AllUsers = () => {
                                 <button
                                     onClick={() => setDeleteModal({ show: false, user: null })}
                                     disabled={deleting}
+                                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Add User Modal */}
+            <AnimatePresence>
+                {addUserModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                        onClick={() => !creating && setAddUserModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-2xl font-bold text-gray-900">Add New User</h3>
+                                <button
+                                    onClick={() => setAddUserModal(false)}
+                                    disabled={creating}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Phone Number <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={newUser.phone_number}
+                                        onChange={(e) => setNewUser({ ...newUser, phone_number: e.target.value })}
+                                        placeholder="+1234567890"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none"
+                                        disabled={creating}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newUser.name}
+                                        onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                                        placeholder="John Doe"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none"
+                                        disabled={creating}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={newUser.email}
+                                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                                        placeholder="john@example.com"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none"
+                                        disabled={creating}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Initial Coins
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={newUser.coins}
+                                        onChange={(e) => setNewUser({ ...newUser, coins: parseInt(e.target.value) || 0 })}
+                                        placeholder="0"
+                                        min="0"
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none"
+                                        disabled={creating}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={handleCreateUser}
+                                    disabled={creating}
+                                    className="flex-1 px-4 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {creating ? 'Creating...' : 'Create User'}
+                                </button>
+                                <button
+                                    onClick={() => setAddUserModal(false)}
+                                    disabled={creating}
                                     className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Cancel

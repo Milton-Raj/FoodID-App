@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, ArrowRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { login } from '../services/api';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -15,14 +16,19 @@ const Login = () => {
         setIsLoading(true);
         setError('');
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 800));
+        try {
+            const data = await login({ username, password });
 
-        if (username === 'admin' && password === '123456') {
             localStorage.setItem('adminLoggedIn', 'true');
+            localStorage.setItem('adminToken', data.session_token);
+            localStorage.setItem('adminUser', JSON.stringify(data.admin_user));
+            localStorage.setItem('adminPermissions', JSON.stringify(data.permissions));
+
             navigate('/dashboard');
-        } else {
-            setError('Invalid credentials. Please try again.');
+        } catch (err) {
+            console.error('Login failed:', err);
+            setError(err.response?.data?.detail || 'Invalid credentials. Please try again.');
+        } finally {
             setIsLoading(false);
         }
     };

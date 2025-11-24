@@ -2,8 +2,13 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from database import engine, Base
-from routers import auth, scan, profile, notifications, referrals, coins, admin
+from backend.database import engine, Base
+from backend.routers import (
+    auth, scan, profile, 
+    notifications as notif_router, 
+    referrals, coins, admin, admin_management,
+    admin_auth, settings, security, user_management
+)
 
 # Create DB tables
 Base.metadata.create_all(bind=engine)
@@ -23,10 +28,17 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(scan.router, prefix="/api/scan", tags=["scan"])
 app.include_router(profile.router, prefix="/api", tags=["profile"])
-app.include_router(notifications.router, prefix="/api", tags=["notifications"])
-app.include_router(referrals.router, prefix="/api", tags=["referrals"])
+app.include_router(referrals.router, prefix="/api/admin", tags=["referrals"])
 app.include_router(coins.router, prefix="/api", tags=["coins"])
+app.include_router(notif_router.router, prefix="/api/admin", tags=["notifications"])
+app.include_router(admin_management.router, prefix="/api/admin", tags=["admin-management"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+
+# New routers for advanced admin system
+app.include_router(admin_auth.router, prefix="/api/admin", tags=["admin-auth"])
+app.include_router(settings.router, prefix="/api/admin", tags=["settings"])
+app.include_router(security.router, prefix="/api/admin", tags=["security"])
+app.include_router(user_management.router, prefix="/api/admin", tags=["user-management"])
 
 # Create directories if they don't exist
 os.makedirs("uploads", exist_ok=True)

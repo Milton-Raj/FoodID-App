@@ -6,6 +6,7 @@ import {
     Headphones, Lock, ChevronDown, ChevronRight, LogOut, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { menuItems as allMenuItems } from '../config/menuItems';
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -23,91 +24,20 @@ const Sidebar = () => {
         navigate('/login');
     };
 
-    const menuItems = [
-        {
-            id: 'dashboard',
-            label: 'Dashboard',
-            icon: LayoutDashboard,
-            path: '/dashboard'
-        },
-        {
-            id: 'users',
-            label: 'User Management',
-            icon: Users,
-            subItems: [
-                { label: 'All Users', path: '/users/all' },
-                { label: 'User Profile View', path: '/users/profile' },
-                { label: 'Coins Adjustment', path: '/users/coins' },
-                { label: 'Export Users', path: '/users/export' }
-            ]
-        },
+    const [userPermissions, setUserPermissions] = useState(() => {
+        const perms = localStorage.getItem('adminPermissions');
+        return perms ? JSON.parse(perms) : null;
+    });
 
-        {
-            id: 'analytics',
-            label: 'Scan Analytics',
-            icon: BarChart3,
-            path: '/analytics'
-        },
-        {
-            id: 'coins',
-            label: 'Coin System',
-            icon: Coins,
-            subItems: [
-                { label: 'Coin Rules', path: '/coins/rules' },
-                { label: 'Manual Adjustments', path: '/coins/adjustments' },
-                { label: 'Transaction Logs', path: '/coins/transactions' }
-            ]
-        },
-        {
-            id: 'referrals',
-            label: 'Referral Management',
-            icon: UserPlus,
-            path: '/referrals'
-        },
-        {
-            id: 'notifications',
-            label: 'Notifications',
-            icon: Bell,
-            subItems: [
-                { label: 'Send Notification', path: '/notifications/send' },
-                { label: 'Scheduled Notifications', path: '/notifications/scheduled' },
-                { label: 'Notification History', path: '/notifications/history' }
-            ]
-        },
-        {
-            id: 'reports',
-            label: 'Reports',
-            icon: FileText,
-            path: '/reports'
-        },
-        {
-            id: 'admin',
-            label: 'Admin Management',
-            icon: Shield,
-            subItems: [
-                { label: 'Roles & Permissions', path: '/admin/roles' },
-                { label: 'Admin Activity Logs', path: '/admin/logs' }
-            ]
-        },
-        {
-            id: 'settings',
-            label: 'App Settings',
-            icon: Settings,
-            path: '/settings'
-        },
-        {
-            id: 'support',
-            label: 'Support & Ticket System',
-            icon: Headphones,
-            path: '/support'
-        },
-        {
-            id: 'security',
-            label: 'Logs & Security',
-            icon: Lock,
-            path: '/security'
-        }
-    ];
+    // Filter menu items based on permissions
+    const menuItems = allMenuItems.filter(item => {
+        // If no permissions set (e.g. super admin or not logged in properly), show all
+        // In a real app, you might want to default to hiding everything if no permissions found
+        if (!userPermissions || !userPermissions.menus) return true;
+
+        // Check if user has permission for this menu
+        return userPermissions.menus.includes(item.id);
+    });
 
     const renderMenuItem = (item, index) => {
         const hasSubItems = item.subItems && item.subItems.length > 0;

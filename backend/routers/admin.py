@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from services import supabase_client
+from backend.services.supabase_client import get_supabase_client, get_dashboard_stats, get_all_users, get_all_scans
 from typing import Optional
 import csv
 import io
@@ -26,18 +26,18 @@ class CoinAdjustment(BaseModel):
 @router.get("/stats")
 def get_stats():
     """Get dashboard statistics"""
-    return supabase_client.get_dashboard_stats()
+    return get_dashboard_stats()
 
 @router.get("/users")
 def get_users():
     """Get all users"""
-    return supabase_client.get_all_users()
+    return get_all_users()
 
 @router.get("/users/{user_id}")
 def get_user(user_id: int):
     """Get specific user by ID"""
     try:
-        response = supabase_client.client.table('users').select('*').eq('id', user_id).execute()
+        response = get_supabase_client().table('users').select('*').eq('id', user_id).execute()
         if not response.data:
             raise HTTPException(status_code=404, detail="User not found")
         return response.data[0]
@@ -52,7 +52,7 @@ def update_user(user_id: int, user_data: UserUpdate):
         if not update_data:
             raise HTTPException(status_code=400, detail="No data to update")
         
-        response = supabase_client.client.table('users').update(update_data).eq('id', user_id).execute()
+        response = get_supabase_client().table('users').update(update_data).eq('id', user_id).execute()
         if not response.data:
             raise HTTPException(status_code=404, detail="User not found")
         return {"message": "User updated successfully", "user": response.data[0]}
@@ -64,12 +64,12 @@ def delete_user(user_id: int):
     """Delete a user"""
     try:
         # Check if user exists
-        user = supabase_client.client.table('users').select('*').eq('id', user_id).execute()
+        user = get_supabase_client().table('users').select('*').eq('id', user_id).execute()
         if not user.data:
             raise HTTPException(status_code=404, detail="User not found")
         
         # Delete user
-        supabase_client.client.table('users').delete().eq('id', user_id).execute()
+        get_supabase_client().table('users').delete().eq('id', user_id).execute()
         return {"message": "User deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -79,7 +79,7 @@ def adjust_user_coins(adjustment: CoinAdjustment):
     """Adjust user coins (add or subtract)"""
     try:
         # Get current user coins
-        user = supabase_client.client.table('users').select('coins').eq('id', adjustment.user_id).execute()
+        user = get_supabase_client().table('users').select('coins').eq('id', adjustment.user_id).execute()
         if not user.data:
             raise HTTPException(status_code=404, detail="User not found")
         
@@ -94,11 +94,11 @@ def adjust_user_coins(adjustment: CoinAdjustment):
             raise HTTPException(status_code=400, detail="Invalid adjustment type")
         
         # Update user coins
-        supabase_client.client.table('users').update({'coins': new_coins}).eq('id', adjustment.user_id).execute()
+        get_supabase_client().table('users').update({'coins': new_coins}).eq('id', adjustment.user_id).execute()
         
         # Log the adjustment (create coin_adjustments table entry)
         try:
-            supabase_client.client.table('coin_adjustments').insert({
+            get_supabase_client().table('coin_adjustments').insert({
                 'user_id': adjustment.user_id,
                 'amount': adjustment.amount,
                 'adjustment_type': adjustment.adjustment_type,
@@ -125,7 +125,7 @@ def adjust_user_coins(adjustment: CoinAdjustment):
 def get_coin_adjustment_history(limit: int = 50):
     """Get recent coin adjustments"""
     try:
-        response = supabase_client.client.table('coin_adjustments').select('*, users(name, phone_number)').order('created_at', desc=True).limit(limit).execute()
+        response = get_supabase_client().table('coin_adjustments').select('*, users(name, phone_number)').order('created_at', desc=True).limit(limit).execute()
         return response.data
     except:
         # Return empty if table doesn't exist
@@ -174,14 +174,14 @@ def export_users(format: str = "csv"):
 @router.get("/scans")
 def get_scans(limit: int = 50):
     """Get recent scans"""
-    return supabase_client.get_all_scans(limit)
+    return get_all_scans(limit)
 
 @router.get("/scans/analytics")
 def get_scan_analytics():
     """Get comprehensive scan analytics"""
     try:
         # Get all scans
-        scans = supabase_client.get_all_scans(1000)  # Get more for analytics
+        scans = get_all_scans(1000)  # Get more for analytics
         
         if not scans:
             return {
@@ -320,7 +320,7 @@ def get_scan_analytics():
 def get_scan_categories():
     """Get scan distribution by food categories"""
     try:
-        scans = supabase_client.get_all_scans(1000)
+        scans = get_all_scans(1000)
         
         # Categorize foods (simple categorization based on common patterns)
         categories = {
@@ -366,7 +366,7 @@ def get_scan_categories():
 def get_confidence_distribution():
     """Get distribution of scan confidence levels"""
     try:
-        scans = supabase_client.get_all_scans(1000)
+        scans = get_all_scans(1000)
         
         # Categorize by confidence ranges
         ranges = {
@@ -431,7 +431,7 @@ class CoinRuleUpdate(BaseModel):
 def get_coin_rules():
     """Get all coin rules"""
     try:
-        response = supabase_client.client.table('coin_rules').select('*').order('created_at', desc=True).execute()
+        response = get_supabase_client().table('coin_rules').select('*').order('created_at', desc=True).execute()
         
         # Separate by type
         earning_rules = [r for r in response.data if r.get('rule_type') == 'earning']
@@ -462,7 +462,7 @@ def create_coin_rule(rule: CoinRule):
             "updated_at": datetime.utcnow().isoformat()
         }
         
-        response = supabase_client.client.table('coin_rules').insert(rule_data).execute()
+        response = get_supabase_client().table('coin_rules').insert(rule_data).execute()
         
         return {
             "message": "Coin rule created successfully",
@@ -480,7 +480,7 @@ def update_coin_rule(rule_id: int, rule_update: CoinRuleUpdate):
         update_data = {k: v for k, v in rule_update.dict().items() if v is not None}
         update_data["updated_at"] = datetime.utcnow().isoformat()
         
-        response = supabase_client.client.table('coin_rules').update(update_data).eq('id', rule_id).execute()
+        response = get_supabase_client().table('coin_rules').update(update_data).eq('id', rule_id).execute()
         
         if not response.data:
             raise HTTPException(status_code=404, detail="Rule not found")
@@ -498,7 +498,7 @@ def update_coin_rule(rule_id: int, rule_update: CoinRuleUpdate):
 def delete_coin_rule(rule_id: int):
     """Delete a coin rule"""
     try:
-        response = supabase_client.client.table('coin_rules').delete().eq('id', rule_id).execute()
+        response = get_supabase_client().table('coin_rules').delete().eq('id', rule_id).execute()
         
         if not response.data:
             raise HTTPException(status_code=404, detail="Rule not found")
@@ -516,14 +516,14 @@ def toggle_coin_rule(rule_id: int):
         from datetime import datetime
         
         # Get current status
-        current = supabase_client.client.table('coin_rules').select('is_active').eq('id', rule_id).execute()
+        current = get_supabase_client().table('coin_rules').select('is_active').eq('id', rule_id).execute()
         
         if not current.data:
             raise HTTPException(status_code=404, detail="Rule not found")
         
         new_status = not current.data[0]['is_active']
         
-        response = supabase_client.client.table('coin_rules').update({
+        response = get_supabase_client().table('coin_rules').update({
             "is_active": new_status,
             "updated_at": datetime.utcnow().isoformat()
         }).eq('id', rule_id).execute()
@@ -545,7 +545,7 @@ def get_adjustment_stats():
         from datetime import datetime, timedelta
         
         # Get all adjustments
-        adjustments = supabase_client.client.table('coin_adjustments').select('*').execute().data
+        adjustments = get_supabase_client().table('coin_adjustments').select('*').execute().data
         
         if not adjustments:
             return {
@@ -599,7 +599,7 @@ def get_coin_transactions(limit: int = 100, transaction_type: Optional[str] = No
     """Get all coin transactions with optional filtering"""
     try:
         # Get coin adjustments
-        adjustments_query = supabase_client.client.table('coin_adjustments').select('*, users(name, phone_number)')
+        adjustments_query = get_supabase_client().table('coin_adjustments').select('*, users(name, phone_number)')
         
         if limit:
             adjustments_query = adjustments_query.limit(limit)
@@ -641,7 +641,7 @@ def get_transaction_stats():
         from datetime import datetime, timedelta
         
         # Get all transactions (adjustments for now)
-        transactions = supabase_client.client.table('coin_adjustments').select('*').execute().data
+        transactions = get_supabase_client().table('coin_adjustments').select('*').execute().data
         
         if not transactions:
             return {

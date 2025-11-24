@@ -1,102 +1,77 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List
+from typing import Optional, List
 from datetime import datetime
-from services.supabase_client import (
-    get_user_by_id,
-    create_referral,
-    get_user_referrals,
-    redeem_referral
-)
+from backend.services.supabase_client import get_supabase_client
 
-router = APIRouter()
+router = APIRouter(prefix="/referrals", tags=["Referral Management"])
 
-# Pydantic Models
-class ReferralRequest(BaseModel):
-    user_id: int
-    phone_numbers: List[str]
+class ReferralCreate(BaseModel):
+    code: str
+    user_id: Optional[int] = None
+    expires_at: Optional[datetime] = None
+    is_active: Optional[bool] = True
 
-class ReferralResponse(BaseModel):
-    id: int
-    referrer_id: int
-    referred_phone: str
-    status: str
-    created_at: str
+class ReferralUpdate(BaseModel):
+    user_id: Optional[int] = None
+    expires_at: Optional[datetime] = None
+    is_active: Optional[bool] = None
 
-class ReferralStats(BaseModel):
-    total_referrals: int
-    pending: int
-    accepted: int
-    registered: int
+@router.get("/")
+async def list_referrals():
+    try:
+        resp = get_supabase_client().table('referral_codes').select('*').order('created_at', desc=True).execute()
+        return resp.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/referrals/send")
-async def send_referrals(referral: ReferralRequest):
-    """Send referrals to multiple phone numbers in Supabase"""
-    # Verify user exists
-    user = get_user_by_id(referral.user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    created_referrals = []
-    
-    for phone in referral.phone_numbers:
-        # Create referral in Supabase
-        new_referral = create_referral(referral.user_id, phone)
-        if new_referral:
-            created_referrals.append(new_referral)
-    
-    return {
-        "success": True,
-        "message": f"Referrals sent to {len(created_referrals)} contacts",
-        "referrals": created_referrals
-    }
+@router.post("/")
+async def create_referral(ref: ReferralCreate):
+    try:
+        data = {
+            "code": ref.code,
+            "user_id": ref.user_id,
+            "expires_at": ref.expires_at.isoformat() if ref.expires_at else None,
+            "is_active": ref.is_active,
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        resp = get_supabase_client().table('referral_codes').insert(data).execute()
+        return {"message": "Referral created", "referral": resp.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/referrals/{user_id}")
-async def get_referrals(user_id: int):
-    """Get user's referral history from Supabase"""
-    # Verify user exists
-    user = get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Get referrals from Supabase
-    referrals = get_user_referrals(user_id)
-    return referrals
+@router.put("/{ref_id}")
+async def update_referral(ref_id: int, ref: ReferralUpdate):
+    try:
+        update_data = {k: v for k, v in ref.dict().items() if v is not None}
+        update_data["updated_at"] = datetime.utcnow().isoformat()
+        resp = get_supabase_client().table('referral_codes').update(update_data).eq('id', ref_id).execute()
+        if not resp.data:
+            raise HTTPException(status_code=404, detail="Referral not found")
+        return {"message": "Referral updated", "referral": resp.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/referrals/{user_id}/stats")
-async def get_referral_stats(user_id: int):
-    """Get referral statistics for a user from Supabase"""
-    # Verify user exists
-    user = get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Get referrals from Supabase
-    referrals = get_user_referrals(user_id)
-    
-    stats = {
-        "total_referrals": len(referrals),
-        "pending": sum(1 for r in referrals if r.get("status") == "pending"),
-        "accepted": sum(1 for r in referrals if r.get("status") == "accepted"),
-        "registered": sum(1 for r in referrals if r.get("status") == "registered")
-    }
-    
-    return stats
+@router.delete("/{ref_id}")
+async def delete_referral(ref_id: int):
+    try:
+        resp = get_supabase_client().table('referral_codes').delete().eq('id', ref_id).execute()
+        if not resp.data:
+            raise HTTPException(status_code=404, detail="Referral not found")
+        return {"message": "Referral deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-# -------------------------------------------------
-# Referral Redeem Endpoint
-# -------------------------------------------------
-
-@router.post("/referrals/redeem")
-async def redeem_referral_endpoint(referral_id: int, new_user_id: int):
-    """Redeem a referral and award bonus coins to both parties.
-    Returns the updated referral record.
-    """
-    # Verify referral exists and user exists are handled in service
-    result = redeem_referral(referral_id, new_user_id)
-    if not result:
-        raise HTTPException(status_code=400, detail="Referral redemption failed")
-    return {
-        "success": True,
-        "referral": result
-    }
+@router.patch("/{ref_id}/toggle")
+async def toggle_referral(ref_id: int):
+    try:
+        # get current status
+        cur = get_supabase_client().table('referral_codes').select('is_active').eq('id', ref_id).execute()
+        if not cur.data:
+            raise HTTPException(status_code=404, detail="Referral not found")
+        new_status = not cur.data[0]['is_active']
+        resp = get_supabase_client().table('referral_codes').update({"is_active": new_status, "updated_at": datetime.utcnow().isoformat()}).eq('id', ref_id).execute()
+        return {"message": f"Referral {'activated' if new_status else 'deactivated'}", "is_active": new_status}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

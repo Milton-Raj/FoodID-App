@@ -2,7 +2,7 @@ import random
 import string
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
-from services.supabase_client import get_supabase_client
+from backend.services.supabase_client import get_supabase_client
 
 # In-memory storage for testing (when Supabase tables don't exist)
 _otp_storage = {}

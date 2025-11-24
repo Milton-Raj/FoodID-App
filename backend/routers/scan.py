@@ -4,9 +4,9 @@ import json
 import os
 from PIL import Image
 import io
-from database import get_db
-from services.ai_recognition import recognize_food, get_nutritional_data
-from services.supabase_client import create_scan, get_recent_scans
+from backend.database import get_db
+from backend.services.ai_recognition import recognize_food, get_nutritional_data
+from backend.services.supabase_client import create_scan, get_recent_scans
 
 router = APIRouter()
 
@@ -86,7 +86,7 @@ async def analyze_food(file: UploadFile = File(...), user_id: int = 1):
     )
     
     # Award coins for the scan
-    from routers.coins import award_coins
+    from backend.routers.coins import award_coins
     coin_result = award_coins(
         user_id=user_id,
         amount=1,

@@ -16,11 +16,24 @@ import ScanAnalytics from './pages/analytics/ScanAnalytics';
 
 // Coin System
 import CoinRules from './pages/coins/CoinRules';
-import ManualAdjustments from './pages/coins/ManualAdjustments';
 import TransactionLogs from './pages/coins/TransactionLogs';
 
 // Notifications
 import SendNotification from './pages/notifications/SendNotification';
+import ScheduledNotifications from './pages/notifications/ScheduledNotifications';
+import NotificationHistory from './pages/notifications/NotificationHistory';
+
+// Referrals
+import ReferralManagement from './pages/referrals/ReferralManagement';
+
+// Admin Management
+import RolesPermissions from './pages/admin/RolesPermissions';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminActivityLogs from './pages/admin/AdminActivityLogs';
+
+// Settings & Security
+import AppSettings from './pages/settings/AppSettings';
+import LogsSecurity from './pages/security/LogsSecurity';
 
 // Placeholder component for pages under development
 const ComingSoon = ({ title }) => (
@@ -63,32 +76,32 @@ function App() {
 
                     {/* Coin System */}
                     <Route path="/coins/rules" element={<CoinRules />} />
-                    <Route path="/coins/adjustments" element={<ManualAdjustments />} />
                     <Route path="/coins/transactions" element={<TransactionLogs />} />
 
                     {/* Referrals */}
-                    <Route path="/referrals" element={<ComingSoon title="Referral Management" />} />
+                    <Route path="/referrals" element={<ReferralManagement />} />
 
                     {/* Notifications */}
                     <Route path="/notifications/send" element={<SendNotification />} />
-                    <Route path="/notifications/scheduled" element={<ComingSoon title="Scheduled Notifications" />} />
-                    <Route path="/notifications/history" element={<ComingSoon title="Notification History" />} />
-
-                    {/* Reports */}
-                    <Route path="/reports" element={<ComingSoon title="Reports" />} />
+                    <Route path="/notifications/scheduled" element={<ScheduledNotifications />} />
+                    <Route path="/notifications/history" element={<NotificationHistory />} />
 
                     {/* Admin Management */}
-                    <Route path="/admin/roles" element={<ComingSoon title="Roles & Permissions" />} />
-                    <Route path="/admin/logs" element={<ComingSoon title="Admin Activity Logs" />} />
+                    <Route path="/admin/roles" element={<RolesPermissions />} />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/logs" element={<AdminActivityLogs />} />
 
-                    {/* Settings */}
-                    <Route path="/settings" element={<ComingSoon title="App Settings" />} />
+                    {/* Settings & Security */}
+                    <Route path="/settings" element={<AppSettings />} />
+                    <Route path="/security" element={<LogsSecurity />} />
 
-                    {/* Support */}
-                    <Route path="/support" element={<ComingSoon title="Support & Ticket System" />} />
+                    {/* Logs & Security */}
+                    <Route path="/logs" element={<LogsSecurity />} />
 
                     {/* Security */}
                     <Route path="/security" element={<ComingSoon title="Logs & Security" />} />
+
+
 
                     <Route path="/" element={<Navigate to="/dashboard" />} />
                   </Routes>
