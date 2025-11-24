@@ -336,3 +336,64 @@ def get_user_coin_history(user_id: int, limit: int = 50) -> List[Dict]:
     except Exception as e:
         print(f"Error fetching coin history: {e}")
         return []
+
+# ============================================
+# ADMIN FUNCTIONS
+# ============================================
+
+def get_all_users() -> List[Dict]:
+    """Get all users for admin panel"""
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table('users').select('*').order('created_at', desc=True).execute()
+        return result.data
+    except Exception as e:
+        print(f"Error fetching all users: {e}")
+        return []
+
+def get_all_scans(limit: int = 50) -> List[Dict]:
+    """Get all scans for admin panel"""
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table('scans').select('*, users(name, phone_number)').order('created_at', desc=True).limit(limit).execute()
+        return result.data
+    except Exception as e:
+        print(f"Error fetching all scans: {e}")
+        return []
+
+def get_all_transactions(limit: int = 50) -> List[Dict]:
+    """Get all transactions for admin panel"""
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table('coin_transactions').select('*, users(name, phone_number)').order('created_at', desc=True).limit(limit).execute()
+        return result.data
+    except Exception as e:
+        print(f"Error fetching all transactions: {e}")
+        return []
+
+def get_dashboard_stats() -> Dict:
+    """Get dashboard statistics"""
+    try:
+        supabase = get_supabase_client()
+        
+        # Get counts (approximate using select count)
+        users_count = supabase.table('users').select('*', count='exact', head=True).execute().count
+        scans_count = supabase.table('scans').select('*', count='exact', head=True).execute().count
+        
+        # Calculate total coins in circulation
+        # Note: This might be heavy for large datasets, but fine for MVP
+        users = supabase.table('users').select('coins').execute()
+        total_coins = sum(user['coins'] for user in users.data) if users.data else 0
+        
+        return {
+            'total_users': users_count,
+            'total_scans': scans_count,
+            'total_coins': total_coins
+        }
+    except Exception as e:
+        print(f"Error fetching stats: {e}")
+        return {
+            'total_users': 0,
+            'total_scans': 0,
+            'total_coins': 0
+        }

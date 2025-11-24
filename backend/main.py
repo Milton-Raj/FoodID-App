@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from database import engine, Base
-from routers import auth, scan, profile, notifications, referrals, coins
+from routers import auth, scan, profile, notifications, referrals, coins, admin
 
 # Create DB tables
 Base.metadata.create_all(bind=engine)
@@ -26,6 +26,7 @@ app.include_router(profile.router, prefix="/api", tags=["profile"])
 app.include_router(notifications.router, prefix="/api", tags=["notifications"])
 app.include_router(referrals.router, prefix="/api", tags=["referrals"])
 app.include_router(coins.router, prefix="/api", tags=["coins"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 # Create directories if they don't exist
 os.makedirs("uploads", exist_ok=True)
