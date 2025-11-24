@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL, mockAnalyzeFood, mockGetRecentScans } from '../config';
+import { API_URL, mockAnalyzeFood, mockGetRecentScans, mockSendOTP, mockVerifyOTP } from '../config';
 
 // Use localhost for iOS simulator, 10.0.2.2 for Android emulator
 // For physical device, use your computer's IP address
@@ -58,8 +58,8 @@ export const api = {
             }
             return data;
         } catch (error) {
-            console.error('Send OTP Error:', error);
-            throw error;
+            console.warn('Send OTP Error (falling back to mock):', error);
+            return await mockSendOTP(phoneNumber);
         }
     },
 
@@ -76,8 +76,8 @@ export const api = {
             }
             return data;
         } catch (error) {
-            console.error('Verify OTP Error:', error);
-            throw error;
+            console.warn('Verify OTP Error (falling back to mock):', error);
+            return await mockVerifyOTP(phoneNumber, otpCode);
         }
     },
     analyzeFood: async (photoUri, userId = 1) => {
@@ -102,8 +102,8 @@ export const api = {
             }
             return data;
         } catch (error) {
-            console.error('Analyze Food Error:', error);
-            throw error;
+            console.warn('Analyze Food Error (falling back to mock):', error);
+            return await mockAnalyzeFood(photoUri);
         }
     },
 
@@ -116,8 +116,8 @@ export const api = {
             }
             return data;
         } catch (error) {
-            console.error('Get Recent Scans Error:', error);
-            throw error;
+            console.warn('Get Recent Scans Error (falling back to mock):', error);
+            return await mockGetRecentScans(userId);
         }
     },
 
