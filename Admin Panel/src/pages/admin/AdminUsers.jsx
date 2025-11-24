@@ -1,4 +1,3 @@
-```javascript
 import React, { useEffect, useState } from 'react';
 import PageTemplate from '../../components/PageTemplate';
 import { Shield, Plus, Trash2, X, Save, Eye, EyeOff, Edit2, AlertTriangle } from 'lucide-react';
@@ -44,7 +43,7 @@ const AdminUsers = () => {
                 alert('Please fill in all required fields');
                 return;
             }
-            
+
             if (editingUser) {
                 await updateAdminUser(editingUser.id, {
                     role_id: parseInt(formData.role_id),
@@ -58,7 +57,7 @@ const AdminUsers = () => {
                 });
                 alert('Admin user created successfully!');
             }
-            
+
             closeModal();
             fetchData();
         } catch (error) {
@@ -152,7 +151,7 @@ const AdminUsers = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px - 3 py - 1 rounded - full text - sm font - medium ${ user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' } `}>
+                                            <span className={`px - 3 py - 1 rounded - full text - sm font - medium ${user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} `}>
                                                 {user.is_active ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
@@ -192,11 +191,11 @@ const AdminUsers = () => {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Username</label>
-                                    <input 
-                                        type="text" 
-                                        value={formData.username} 
-                                        onChange={e => setFormData({ ...formData, username: e.target.value })} 
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none disabled:bg-gray-100 disabled:text-gray-500" 
+                                    <input
+                                        type="text"
+                                        value={formData.username}
+                                        onChange={e => setFormData({ ...formData, username: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                                         placeholder="admin_user"
                                         disabled={!!editingUser} // Username cannot be changed
                                     />
@@ -205,14 +204,14 @@ const AdminUsers = () => {
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
                                         <div className="relative">
-                                            <input 
-                                                type={showPassword ? "text" : "password"} 
-                                                value={formData.password} 
-                                                onChange={e => setFormData({ ...formData, password: e.target.value })} 
-                                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none pr-12" 
-                                                placeholder="••••••••" 
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                value={formData.password}
+                                                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none pr-12"
+                                                placeholder="••••••••"
                                             />
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -233,10 +232,10 @@ const AdminUsers = () => {
                                 </div>
                                 {editingUser && (
                                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                        <input 
-                                            type="checkbox" 
+                                        <input
+                                            type="checkbox"
                                             id="is_active"
-                                            checked={formData.is_active} 
+                                            checked={formData.is_active}
                                             onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
                                             className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
                                         />
@@ -278,7 +277,7 @@ const AdminUsers = () => {
                                     </div>
                                     <div className="flex justify-between border-b border-gray-200 pb-2">
                                         <span className="text-gray-500 text-sm">Status</span>
-                                        <span className={`px - 3 py - 1 rounded - full text - sm font - medium ${ selectedUser.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' } `}>
+                                        <span className={`px - 3 py - 1 rounded - full text - sm font - medium ${selectedUser.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} `}>
                                             {selectedUser.is_active ? 'Active' : 'Inactive'}
                                         </span>
                                     </div>
