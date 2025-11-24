@@ -5,7 +5,8 @@ from datetime import datetime
 from services.supabase_client import (
     get_user_by_id,
     create_referral,
-    get_user_referrals
+    get_user_referrals,
+    redeem_referral
 )
 
 router = APIRouter()

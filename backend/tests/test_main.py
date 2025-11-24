@@ -6,7 +6,7 @@ client = TestClient(app)
 def test_read_main():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Welcome to FoodID API"}
+    assert response.json() == {"message": "Welcome to FoodID API v0.2.0"}
 
 def test_health_check():
     response = client.get("/health")

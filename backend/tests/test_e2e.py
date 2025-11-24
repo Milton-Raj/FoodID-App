@@ -21,7 +21,7 @@ def test_analyze_and_history_flow():
 
     with open(image_path, 'rb') as f:
         response = client.post(
-            "/scan/analyze",
+            "/api/scan/analyze",
             files={"file": ("test_food.jpg", f, "image/jpeg")}
         )
     
@@ -36,7 +36,7 @@ def test_analyze_and_history_flow():
     food_name = data["name"]
     
     # 2. Check recent scans to verify it was saved
-    response = client.get("/scan/recent?user_id=1&limit=5")
+    response = client.get("/api/scan/recent?user_id=1&limit=5")
     assert response.status_code == 200
     history = response.json()
     print(f"History Response: {history}")
