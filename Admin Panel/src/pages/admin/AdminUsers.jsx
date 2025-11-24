@@ -62,7 +62,8 @@ const AdminUsers = () => {
             fetchData();
         } catch (error) {
             console.error('Failed to save user:', error);
-            alert('Failed to save user. Please try again.');
+            const errorMessage = error.response?.data?.detail || error.message || 'Failed to save user. Please try again.';
+            alert(errorMessage);
         }
     };
 
