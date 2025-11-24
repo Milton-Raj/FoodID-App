@@ -12,9 +12,13 @@ export const HistoryScreen = ({ navigation }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchHistory();
-    }, []);
+    import { useFocusEffect } from '@react-navigation/native';
+
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchHistory();
+        }, [])
+    );
 
     const fetchHistory = async () => {
         try {
