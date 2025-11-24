@@ -11,7 +11,7 @@ import {
     Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Camera, Edit2, Save } from 'lucide-react-native';
+import { ArrowLeft, Camera, Edit2, Save, Phone, User, Mail } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/Button';
 import { SkeletonLoader } from '../components/SkeletonLoader';
