@@ -154,7 +154,7 @@ const Login = () => {
                 {/* Demo Credentials */}
                 <div className="mt-6 p-4 bg-primary-50 border border-primary-200 rounded-xl">
                     <p className="text-sm text-primary-800 font-medium text-center">
-                        Demo: <span className="font-mono">admin</span> / <span className="font-mono">123456</span>
+                        Demo: <span className="font-mono">admin</span> / <span className="font-mono">12345</span>
                     </p>
                 </div>
             </motion.div>
