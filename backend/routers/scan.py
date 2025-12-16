@@ -49,8 +49,14 @@ async def analyze_food(file: UploadFile = File(...), user_id: int = 1):
     compressed_content = compress_image(file_content)
     
     # Save compressed file locally
-    file_location = f"uploads/{file.filename}"
-    os.makedirs("uploads", exist_ok=True)
+    # Save compressed file locally
+    if os.getenv("VERCEL"):
+        upload_dir = "/tmp/uploads"
+    else:
+        upload_dir = "uploads"
+    
+    file_location = f"{upload_dir}/{file.filename}"
+    os.makedirs(upload_dir, exist_ok=True)
     with open(file_location, "wb") as file_object:
         file_object.write(compressed_content)
     

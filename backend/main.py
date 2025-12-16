@@ -41,11 +41,16 @@ app.include_router(security.router, prefix="/api/admin", tags=["security"])
 app.include_router(user_management.router, prefix="/api/admin", tags=["user-management"])
 
 # Create directories if they don't exist
-os.makedirs("uploads", exist_ok=True)
-os.makedirs("uploads/profile_images", exist_ok=True)
+if os.getenv("VERCEL"):
+    upload_dir = "/tmp/uploads"
+else:
+    upload_dir = "uploads"
+
+os.makedirs(upload_dir, exist_ok=True)
+os.makedirs(f"{upload_dir}/profile_images", exist_ok=True)
 
 # Mount uploads directory to serve static files
-app.mount("/static", StaticFiles(directory="uploads"), name="static")
+app.mount("/static", StaticFiles(directory=upload_dir), name="static")
 
 @app.get("/")
 def read_root():
