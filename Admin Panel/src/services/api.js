@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use localhost for admin panel since it's a web app
-const API_URL = 'http://localhost:8000/api/admin';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/admin';
 
 const api = axios.create({
     baseURL: API_URL,
