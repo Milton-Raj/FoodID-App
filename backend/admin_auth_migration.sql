@@ -124,7 +124,7 @@ SELECT
     'admin@foodid.com',
     'Super Admin',
     'admin',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYIr3WMBsSm', -- Admin@123
+    '$2b$12$3PmkXlQoRgIYMLvfv.sdhOzHAs.ZxwEaO8INBHPbfaG.dtzrmRBBi', -- 12345
     (SELECT id FROM admin_roles WHERE role_name = 'Super Admin' LIMIT 1),
     true,
     true
